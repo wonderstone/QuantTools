@@ -71,6 +71,8 @@ func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
 
 	SNum := viper.GetFloat64("Default.SNum")
 	FNum := viper.GetFloat64("Default.FNum")
+	// SESSDFLD := viper.GetStringSlice("Default.SESSDFLD")
+	// FESSDFLD := viper.GetStringSlice("Default.FESSDFLD")
 
 	return SimpleStrategy{
 		SInstNames: sinstrnames,

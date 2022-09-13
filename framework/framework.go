@@ -67,6 +67,30 @@ type BackTest struct {
 	sync.RWMutex
 }
 
+type RealTime struct {
+	// Virtual Account
+	VA *virtualaccount.VAcct
+	// Section for Strategy Targets and info fields
+	SInstrNames []string
+	SIndiNames  []string
+	SRegisterDF []string
+	FInstrNames []string
+	FIndiNames  []string
+	FRegisterDF []string
+	// Section for ContractProp
+	ConfName  string
+	CPDataDir string
+	CPMap     cp.CPMap
+	// Section for Matcher
+	MatcherSlippage4S float64
+	MatcherSlippage4F float64
+	// Section for Strategy Module Selection
+	StrategyMod string
+	SMGEPType   string
+	SMName      string
+	SMDataDir   string
+}
+
 func NewBackTest(SInitVal float64, FInitVale float64, BDt string, EDt string,
 	SInstrNs []string, SIndiNs []string, SCDtfields []string, FInstrNs []string, FIndiNs []string, FCDtfields []string,
 	SDtDir string, FDtDir string, FMTMDtDir string, ConfName string, CPDataDir string, MatcherSlpg4S float64, MatcherSlpg4F float64,
@@ -146,6 +170,64 @@ func NewBackTestConfig(sec string, dir string) BackTest {
 		tmpMap["confname"].(string), tmpMap["cpdatadir"].(string), tmpMap["matcherslippage4s"].(float64), tmpMap["matcherslippage4f"].(float64),
 		tmpMap["strategymodule"].(string), tmpMap["smgeptype"].(string), tmpMap["smname"].(string), tmpMap["smdatadir"].(string),
 		tmpMap["riskfreerate"].(float64), tmpMap["patype"].(string))
+}
+
+func NewRealTime(va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, SRDtfields []string, FInstrNs []string, FIndiNs []string, FRDtfields []string,
+	ConfName string, CPDataDir string, cpm cp.CPMap, MatcherSlpg4S float64, MatcherSlpg4F float64,
+	StrategyMod string, SMGEPType string, SMName string, SMDataDir string) RealTime {
+	return RealTime{
+		// 所有项目均为用户设置
+		// 账户初始化参数，用户资金
+		VA: va,
+		// Section for Strategy Targets and info fields
+		SInstrNames: SInstrNs,
+		SIndiNames:  SIndiNs,
+		SRegisterDF: SRDtfields,
+		FInstrNames: FInstrNs,
+		FIndiNames:  FIndiNs,
+		FRegisterDF: FRDtfields,
+		// Section for ContractProp
+		ConfName:  ConfName,
+		CPDataDir: CPDataDir,
+		CPMap:     cpm,
+		// Section for Matcher
+		MatcherSlippage4S: MatcherSlpg4S,
+		MatcherSlippage4F: MatcherSlpg4F,
+		// Section for Strategy Module Selection
+		StrategyMod: StrategyMod,
+		SMGEPType:   SMGEPType,
+		SMName:      SMName,
+		SMDataDir:   SMDataDir,
+	}
+}
+
+func NewRealTimeConfig(dir string) RealTime {
+	viper.SetConfigName("realtime")
+	viper.AddConfigPath(dir)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	va := virtualaccount.NewVirtualAccountFromConfig(dir)
+	SInstrNs := viper.GetStringSlice("DataFields.sinstrnames")
+	SIndiNs := viper.GetStringSlice("AFields.SIndiNmsAfter")
+	SRDtfields := viper.GetStringSlice("DataFields.scsvdatafields")
+	FInstrNs := viper.GetStringSlice("DataFields.finstrnames")
+	FIndiNs := viper.GetStringSlice("DataFields.findinames")
+	FRDtfields := viper.GetStringSlice("DataFields.fcsvdatafields")
+	ConfName := viper.GetString("ContractProp.ConfName")
+	CPDataDir := viper.GetString("ContractProp.CPDataDir")
+
+	MatcherSlpg4S := viper.GetFloat64("MatcherParam.MatcherSlippage4S")
+	MatcherSlpg4F := viper.GetFloat64("MatcherParam.MatcherSlippage4F")
+	StrategyMod := viper.GetString("StgModel.StrategyModule")
+	SMGEPType := viper.GetString("StgModel.SMGEPType")
+	SMName := viper.GetString("StgModel.SMName")
+	SMDataDir := viper.GetString("StgModel.SMDataDir")
+	cpm := cp.NewCPMap("ContractProp", dir)
+	return NewRealTime(&va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
+		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
 
 type void struct{}
