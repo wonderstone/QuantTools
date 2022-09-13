@@ -6,7 +6,8 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
-type DirType int
+type DirType int // 这个限定是否会慢暂时说不好，至少可以不用每次走panic判断
+// 未来如果真的要提升性能，这个地方可以考虑一下。对应的还有order里有两处
 
 const (
 	Long DirType = iota
@@ -16,9 +17,10 @@ const (
 // Declaring futuresaccount struct with key fields
 // 单一标的单一下单的持仓对应
 type PositionDetail struct {
-	UdTime    string
-	InstID    string
-	Dir       DirType
+	UdTime string
+	InstID string
+	Dir    DirType
+	// Dir       string
 	BasePrice float64 //MTM会被修改
 	LastPrice float64
 	Num       float64
