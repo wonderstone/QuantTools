@@ -54,10 +54,12 @@ func CalComm(SO *order.StockOrder) float64 {
 	TransFee := SO.OrderPrice * SO.OrderNum * SO.ContractSize * SO.SCP.TransferFeeRate
 	Tax := 0.0
 	switch SO.OrderDirection {
-	case order.Buy:
+	case "Buy":
 		Tax = 0
-	case order.Sell:
+	case "Sell":
 		Tax = SO.OrderPrice * SO.OrderNum * SO.ContractSize * SO.SCP.TaxRate
+	default:
+		panic("OrderDirection Error")
 	}
 	Comm := math.Max(SO.OrderPrice*SO.OrderNum*SO.ContractSize*SO.SCP.CommBrokerRate, 5.0)
 

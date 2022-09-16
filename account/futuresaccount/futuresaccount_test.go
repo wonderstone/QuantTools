@@ -34,7 +34,7 @@ func TestActOnOrder(t *testing.T) {
 	// 一个ContractProp给单子提供计算信息
 	var orderfcp cp.FCP = cp.FCP{ContractSize: 1000, TickSize: 0.02, MarginLong: 10, MarginShort: 10, MarginBroker: 0, IsCommRateType: false, CommOpen: 2, CommCloseToday: 0, CommClosePrevious: 2, CommBroker: 0.01}
 	// 下一单新 检查
-	tmporder0 := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, order.Buy, order.Open, &orderfcp)
+	tmporder0 := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &orderfcp)
 	account.ActOnOrder(&tmporder0)
 
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
@@ -46,7 +46,7 @@ func TestActOnOrder(t *testing.T) {
 	assert.Equal(t, 999995.98, account.BmkVal, "账户总基准市值更新不符合预期")
 	assert.Equal(t, 919995.98, account.Fundavail, "账户可用资金更新不符合预期")
 
-	tmporder1 := order.NewFuturesOrder("au2210", true, "20220515 13:35:29 500", 410.00, 2, order.Sell, order.Open, &orderfcp)
+	tmporder1 := order.NewFuturesOrder("au2210", true, "20220515 13:35:29 500", 410.00, 2, "Sell", "Open", &orderfcp)
 	account.ActOnOrder(&tmporder1)
 
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
@@ -58,7 +58,7 @@ func TestActOnOrder(t *testing.T) {
 	assert.Equal(t, 999991.96, account.BmkVal, "账户总基准市值更新不符合预期")
 	assert.Equal(t, 835991.96, account.Fundavail, "账户可用资金更新不符合预期")
 
-	tmporder2 := order.NewFuturesOrder("au2210", true, "20220515 13:45:00 500", 404.00, 1, order.Sell, order.CloseToday, &orderfcp)
+	tmporder2 := order.NewFuturesOrder("au2210", true, "20220515 13:45:00 500", 404.00, 1, "Sell", "CloseToday", &orderfcp)
 	account.ActOnOrder(&tmporder2)
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
 	assert.Equal(t, "20220515 13:45:00 500", account.UdTime, "账户刷新时间更新不符合预期")

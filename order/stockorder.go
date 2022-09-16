@@ -10,12 +10,12 @@ type StockOrder struct {
 	OrderTime      string
 	OrderPrice     float64
 	OrderNum       float64
-	OrderDirection OrderDir
+	OrderDirection string
 	*cp.SCP        // Promoted fields
 }
 
 // 此处用panic机制有待权衡 增加运算 过于粗暴  V.S 便于发现问题
-func NewStockOrder(instID string, isexecuted bool, ordertime string, orderprice float64, ordernum float64, orderdir OrderDir, pscp *cp.SCP) StockOrder {
+func NewStockOrder(instID string, isexecuted bool, ordertime string, orderprice float64, ordernum float64, orderdir string, pscp *cp.SCP) StockOrder {
 	if orderprice <= 0 {
 		panic("下单价格小于0 检查策略模块或相关数据")
 	}

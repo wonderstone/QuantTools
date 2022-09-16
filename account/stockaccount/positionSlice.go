@@ -83,20 +83,21 @@ func popupSlice(SO *order.StockOrder, s []PositionDetail) ([]PositionDetail, flo
 func (ps *PositionSlice) UpdateWithOrder(SO *order.StockOrder) (RealizedProfit float64, Comm float64, Equity float64) {
 	// 修改
 	switch SO.OrderDirection {
-	case order.Buy:
+	case "Buy":
 		// 增加PosTdys
 		ps.PosTdys = append(ps.PosTdys, NewPositionDetail(SO))
 		Equity = ps.PosTdys[len(ps.PosTdys)-1].Equity
 		// Equity = SO.OrderPrice * SO.OrderNum * SO.StockContractProp.ContractSize
 
-	case order.Sell:
+	case "Sell":
 		if SO.OrderNum > ps.CalPosPrevNum() {
 			panic("卖出超量  检查策略模块")
 		}
 		ps.PosPrevs, RealizedProfit = popupSlice(SO, ps.PosPrevs)
 		// 这么算一遍更简单
 		Equity = -SO.OrderPrice * SO.OrderNum * SO.SCP.ContractSize
-
+	default:
+		panic("OrderDirection 错误")
 	}
 	// 计算comm
 	Comm = CalComm(SO)

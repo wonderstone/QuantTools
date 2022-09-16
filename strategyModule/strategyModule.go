@@ -36,3 +36,7 @@ func ContainNaN(m map[string]float64) bool {
 type IStrategy interface {
 	ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult)
 }
+
+type IMStrategy interface {
+	ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult)
+}

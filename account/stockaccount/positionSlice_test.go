@@ -22,7 +22,7 @@ func TestUpdateWithOrder(t *testing.T) {
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 
-	so1 := order.NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, order.Buy, &scp)
+	so1 := order.NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
 
 	// new  positiondetails from stockorder
 	pd1 := NewPositionDetail(&so1)
@@ -33,7 +33,7 @@ func TestUpdateWithOrder(t *testing.T) {
 	assert.Equal(t, expected1, ps.PosTdys[0], "NewPositionSlice不符合预期")
 
 	// test add order to positionslice
-	so2 := order.NewStockOrder(instID, false, "2022-05-10 14:53", 9.5, 2.0, order.Buy, &scp)
+	so2 := order.NewStockOrder(instID, false, "2022-05-10 14:53", 9.5, 2.0, "Buy", &scp)
 	ps.UpdateWithOrder(&so2)
 	assert.Equal(t, "2022-05-10 14:53", ps.PosTdys[0].UdTime, "UpdateWithOrder不符合预期")
 	assert.Equal(t, "2022-05-10 14:53", ps.PosTdys[1].UdTime, "UpdateWithOrder不符合预期")
@@ -53,7 +53,7 @@ func TestUpdateWithOrder(t *testing.T) {
 
 	// test UpdateWithOrder with order.Sell
 	fmt.Printf("the num of holdings  before in positionslice is: %d", int(ps.CalPosTdyNum()+ps.CalPosPrevNum()))
-	so3 := order.NewStockOrder("SZ000058", false, "2022-05-11 14:54", 8.0, 3.0, order.Sell, &scp)
+	so3 := order.NewStockOrder("SZ000058", false, "2022-05-11 14:54", 8.0, 3.0, "Sell", &scp)
 	ps.UpdateWithOrder(&so3)
 	fmt.Printf("the num of holdings  after in positionslice is: %d", int(ps.CalPosTdyNum()+ps.CalPosPrevNum()))
 	assert.Equal(t, "2022-05-11 14:54", ps.PosPrevs[0].UdTime, "UpdateWithOrder不符合预期")

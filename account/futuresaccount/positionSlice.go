@@ -20,7 +20,7 @@ func NewPosSlice() *PositionSlice {
 // 计算PosTdyNumL 和PosTdyNumS
 func (ps *PositionSlice) CalPosTdyNum() (PosTdyNumL float64, PosTdyNumS float64) {
 	for _, pd := range ps.PosTdys {
-		if pd.Dir == Long {
+		if pd.Dir == "Buy" {
 			PosTdyNumL += pd.Num
 		} else {
 			PosTdyNumS += pd.Num
@@ -32,7 +32,7 @@ func (ps *PositionSlice) CalPosTdyNum() (PosTdyNumL float64, PosTdyNumS float64)
 // 计算PosPrevNumL 和osPrevNumS
 func (ps *PositionSlice) CalPosPrevNum() (PosPrevNumL float64, PosPrevNumS float64) {
 	for _, pd := range ps.PosPrevs {
-		if pd.Dir == Long {
+		if pd.Dir == "Buy" {
 			PosPrevNumL += pd.Num
 		} else {
 			PosPrevNumS += pd.Num
@@ -90,17 +90,19 @@ func popupSlice(FO *order.FuturesOrder, s []PositionDetail) ([]PositionDetail, f
 func (ps *PositionSlice) UpdateWithOrder(FO *order.FuturesOrder) (RealizedProfit float64, Comm float64, UnRealizedProfit float64) {
 	// 修改
 	switch FO.OrderType {
-	case order.Open:
+	case "Open":
 		// 增加PosTdys
 		ps.PosTdys = append(ps.PosTdys, NewPositionDetail(FO))
 		// MarginChange = FO.CalMargin()
 		// 没有
-	case order.CloseToday:
+	case "CloseToday":
 		ps.PosTdys, RealizedProfit = popupSlice(FO, ps.PosTdys)
 		// MarginChange = -FO.CalMargin()
-	case order.ClosePrevious:
+	case "ClosePrevious":
 		ps.PosPrevs, RealizedProfit = popupSlice(FO, ps.PosPrevs)
 		// MarginChange = -FO.CalMargin()
+	default:
+		panic("OrderType Error")
 	}
 	// 先更新一遍ps数据 可以避免Margin计算错误,内部包含1.updatetime 字段更新
 	ps.UpdateWithUMI(FO.OrderTime, FO.OrderPrice)

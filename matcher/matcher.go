@@ -28,10 +28,12 @@ func (m *SimpleMatcher) MatchFuturesOrder(FO *order.FuturesOrder, matchprice flo
 	// num4ticksize for how many ticksizes to adjust
 
 	switch FO.OrderDirection {
-	case order.Buy:
+	case "Buy":
 		FO.OrderPrice = matchprice + m.Slippage4F*FO.TickSize
-	case order.Sell:
+	case "Sell":
 		FO.OrderPrice = matchprice - m.Slippage4F*FO.TickSize
+	default:
+		panic("OrderDirection Error")
 	}
 	FO.OrderTime = matchtime
 	FO.IsExecuted = true
@@ -43,10 +45,12 @@ func (m *SimpleMatcher) MatchStockOrder(SO *order.StockOrder, matchprice float64
 	// insurance: add a mutex for matchstockorder
 	// m.Lock()
 	switch SO.OrderDirection {
-	case order.Buy:
+	case "Buy":
 		SO.OrderPrice = matchprice + m.Slippage4S
-	case order.Sell:
+	case "Sell":
 		SO.OrderPrice = matchprice - m.Slippage4S
+	default:
+		panic("OrderDirection Error")
 	}
 	SO.OrderTime = matchtime
 	SO.IsExecuted = true

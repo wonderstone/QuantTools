@@ -6,21 +6,24 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
-type DirType int // 这个限定是否会慢暂时说不好，至少可以不用每次走panic判断
-// 未来如果真的要提升性能，这个地方可以考虑一下。对应的还有order里有两处
+// type DirType int // 这个限定是否会慢暂时说不好，至少可以不用每次走panic判断
+// // 未来如果真的要提升性能，这个地方可以考虑一下。对应的还有order里有两处
 
-const (
-	Long DirType = iota
-	Short
-)
+// const (
+// 	Long DirType = iota
+// 	Short
+// )
+// *************************************************************************
+// 因为需要与order处的orderdirction保持一致  故此处的long由buy替换，short由sell替换！
+// *************************************************************************
 
 // Declaring futuresaccount struct with key fields
 // 单一标的单一下单的持仓对应
 type PositionDetail struct {
 	UdTime string
 	InstID string
-	Dir    DirType
-	// Dir       string
+	// Dir    DirType
+	Dir       string
 	BasePrice float64 //MTM会被修改
 	LastPrice float64
 	Num       float64
@@ -32,9 +35,10 @@ type PositionDetail struct {
 // 依据futuresorder产生PositionDetail
 func NewPositionDetail(fo *order.FuturesOrder) PositionDetail {
 	pd := PositionDetail{
-		UdTime:    fo.OrderTime,
-		InstID:    fo.InstID,
-		Dir:       DirType(fo.OrderDirection),
+		UdTime: fo.OrderTime,
+		InstID: fo.InstID,
+		// Dir:       DirType(fo.OrderDirection),
+		Dir:       fo.OrderDirection,
 		BasePrice: fo.OrderPrice, //MTM会被修改
 		LastPrice: fo.OrderPrice,
 		Num:       fo.OrderNum,
@@ -47,9 +51,9 @@ func NewPositionDetail(fo *order.FuturesOrder) PositionDetail {
 // 计算保证金 因行情数据引发
 func (pd *PositionDetail) CalMargin(updatevalue float64) {
 	switch pd.Dir {
-	case Long:
+	case "Buy":
 		pd.Margin = updatevalue * pd.Num * pd.FCP.ContractSize * (pd.FCP.MarginLong + pd.FCP.MarginBroker) / 100
-	case Short:
+	case "Sell":
 		pd.Margin = updatevalue * pd.Num * pd.FCP.ContractSize * (pd.FCP.MarginShort + pd.FCP.MarginBroker) / 100
 	}
 }
@@ -71,21 +75,25 @@ func (pd *PositionDetail) UpdateLastPrice(time string, value float64) {
 func CalComm(FO *order.FuturesOrder) (comm float64) {
 	if FO.IsCommRateType {
 		switch FO.OrderType {
-		case order.Open:
+		case "Open":
 			comm = FO.OrderPrice * FO.OrderNum * FO.ContractSize * (FO.CommOpen + FO.CommBroker)
-		case order.CloseToday:
+		case "CloseToday":
 			comm = FO.OrderPrice * FO.OrderNum * FO.ContractSize * (FO.CommCloseToday + FO.CommBroker)
-		case order.ClosePrevious:
+		case "ClosePrevious":
 			comm = FO.OrderPrice * FO.OrderNum * FO.ContractSize * (FO.CommClosePrevious + FO.CommBroker)
+		default:
+			panic("OrderType Error")
 		}
 	} else {
 		switch FO.OrderType {
-		case order.Open:
+		case "Open":
 			comm = FO.OrderNum * (FO.CommOpen + FO.CommBroker)
-		case order.CloseToday:
+		case "CloseToday":
 			comm = FO.OrderNum * (FO.CommCloseToday + FO.CommBroker)
-		case order.ClosePrevious:
+		case "ClosePrevious":
 			comm = FO.OrderNum * (FO.CommClosePrevious + FO.CommBroker)
+		default:
+			panic("OrderType Error")
 		}
 	}
 	return
@@ -96,9 +104,9 @@ func CalComm(FO *order.FuturesOrder) (comm float64) {
 // 计算持仓盈亏 由市值刷新引发的浮动盈亏 FuturesContract.ContractSize 与 UpdateMI.Value充当updatevalue
 func (pd *PositionDetail) CalUnRealizedProfit(updatevalue float64) (Profit float64) {
 	switch pd.Dir {
-	case Long:
+	case "Buy":
 		Profit = pd.Num * pd.FCP.ContractSize * (updatevalue - pd.BasePrice)
-	case Short:
+	case "Sell":
 		Profit = pd.Num * pd.FCP.ContractSize * (pd.BasePrice - updatevalue)
 	}
 	return
@@ -108,9 +116,9 @@ func (pd *PositionDetail) CalUnRealizedProfit(updatevalue float64) (Profit float
 // 持仓数改变问题应该在上一层slice级解决，因为下降到0时会被slice剔除，这个操作在pd级别做不了
 func (pd *PositionDetail) CalRealizedProfit(num float64, updatevalue float64) (RealizedProfit float64) {
 	switch pd.Dir {
-	case Long:
+	case "Buy":
 		RealizedProfit = num * pd.FCP.ContractSize * (updatevalue - pd.BasePrice)
-	case Short:
+	case "Sell":
 		RealizedProfit = num * pd.FCP.ContractSize * (pd.BasePrice - updatevalue)
 	}
 	return
