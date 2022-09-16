@@ -321,7 +321,7 @@ func (BT *BackTest) PrepareData() {
 
 // 2. 遍历数据
 // VAcct 引用(指针)传递 ，BCM 引用(指针)传递，strategymodule值传递，CPMap值传递，Eval函数传递(回调)
-func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.BarCM, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64) {
+func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.BarCM, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
 	// when SInstrNames and FInstrNames are empty, panic
 	if len(BT.FInstrNames) == 0 && len(BT.SInstrNames) == 0 {
 		panic("没有操作标的")
@@ -431,7 +431,15 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			}
 		}
 		//  2.2 策略接收数据并经过ActOnData得到对应账户的orderslice
-		tmpOrderRes = strategymodule.ActOnData(mapkeydt, BCM.BarCMap[mapkeydt], VAcct, CPMap, Eval)
+		switch mode {
+		case "GEP":
+			tmpOrderRes = strategymodule.ActOnData(mapkeydt, BCM.BarCMap[mapkeydt], VAcct, CPMap, Eval)
+		case "Manual":
+			tmpOrderRes = strategymodule.ActOnDataMAN(mapkeydt, BCM.BarCMap[mapkeydt], VAcct, CPMap)
+		default:
+			panic("mode is not defined")
+		}
+
 		// this part is for test only
 		log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Strategy ActOnData Finished")
 		// 临时看一下，记得删除
@@ -439,7 +447,6 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 		lastdatetime = mapkeydt
 
 	}
-	// BT.Unlock()
 
 }
 

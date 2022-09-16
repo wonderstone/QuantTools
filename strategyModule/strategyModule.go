@@ -33,10 +33,8 @@ func ContainNaN(m map[string]float64) bool {
 	return false
 }
 
+// 此处设计强制要求形式上有GEP和Manual两类，如果真不想写，对应的地方留空即可
 type IStrategy interface {
 	ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult)
-}
-
-type IMStrategy interface {
 	ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult)
 }
