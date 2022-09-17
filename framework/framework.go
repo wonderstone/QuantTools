@@ -249,9 +249,9 @@ func getFileMap(path string) map[string]void {
 func (BT *BackTest) GetStrategy(sec string, dir string) strategyModule.IStrategy {
 	switch BT.StrategyMod {
 	case "Simple":
-		return strategyModule.NewSimpleStrategyFromConfig(sec, dir)
+		return strategyModule.NewStrategyFromConfig(sec, dir)
 	default:
-		return strategyModule.NewSimpleStrategyFromConfig(sec, dir)
+		return strategyModule.NewStrategyFromConfig(sec, dir)
 	}
 }
 

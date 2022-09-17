@@ -1,7 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
+	"os"
+	"strconv"
+
 	"github.com/rs/zerolog/log"
+	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	"github.com/wonderstone/QuantTools/framework"
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
@@ -30,5 +35,23 @@ func main() {
 	// manager prepares the market data
 	m.BT.PrepareData()
 	log.Info().Msg("Data Prepared!")
-
+	// new a strategy from backtest
+	pstg := m.STG
+	// new virtual account
+	va := virtualaccount.NewVirtualAccount(m.BT.BeginDate, m.BT.StockInitValue, m.BT.FuturesInitValue)
+	m.BT.IterData(&va, m.BT.BCM, pstg, m.BT.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	file, err := os.Create("./records.csv")
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+	defer file.Close()
+	w := csv.NewWriter(file)
+	defer w.Flush()
+	// Using Write
+	for _, record := range va.SAcct.MarketValueSlice {
+		row := []string{record.Time, strconv.FormatFloat(record.MktVal, 'f', 2, 64)}
+		if err := w.Write(row); err != nil {
+			log.Fatal().Msg(err.Error())
+		}
+	}
 }
