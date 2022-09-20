@@ -8,7 +8,7 @@ FuturesAccount:
     Password: wonder321
 StockMarketQuotesInfo:
     IPAddr:  100.102.121.116
-    Port: 35532
+    Port: "35532"
 FuturesMarketQuotesInfo:
     IPAddr:  101.102.121.100
-    Port: 35531
+    Port: "35531"

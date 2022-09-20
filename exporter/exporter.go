@@ -10,10 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// export realtime yaml file in config dir
-func ExportRealtimeYaml(configDir string, sec string, va virtualaccount.VAcct, AInfo interface{}) {
+// export realtime yaml file in the same dir as the executable file, info would be read from backtest.yaml
+// configDir: the directory of the configuration files, let's say BackTest.yaml
+// filename: the name of the file to be read from, BackTest it is
+// sec: the section name in the BackTest.yaml, most likely "Default"
+// va: the virtual account info to be added
+// AInfo: additional info to be added
+func ExportRealtimeYaml(configDir string, filename string, sec string, va virtualaccount.VAcct, AInfo interface{}) {
 	// read BackTest configuration from file  viper is not thread safe
-	viper.SetConfigName("BackTest")
+	viper.SetConfigName(filename)
 	viper.AddConfigPath(configDir)
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -21,7 +26,6 @@ func ExportRealtimeYaml(configDir string, sec string, va virtualaccount.VAcct, A
 	}
 
 	m := make(map[string]interface{})
-
 	// Add Virtual account fields
 	m["va"] = va
 	// Add additional fields
@@ -97,14 +101,21 @@ func ExportRealtimeYaml(configDir string, sec string, va virtualaccount.VAcct, A
 	// fmt.Println("data written")
 }
 
-func ReplaceVA(configDir string, va virtualaccount.VAcct) {
-	viper.SetConfigName("realtime")
+// for realtime job, when exit the process, update the va info by replacing the va field for realtime.yaml
+// the file would in the same dir as the executable file
+// configDir: the directory of the configuration files, let's say realtime.yaml
+// filename: the name of the file to be updated, realtime.yaml it is
+// va: the virtual account info to be updated
+func ReplaceVA(configDir string, filename string, va virtualaccount.VAcct) {
+	// read realtime configuration from file  viper is not thread safe
+	viper.SetConfigName(filename)
 	viper.AddConfigPath(configDir)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
 	c := viper.AllSettings()
+	// replace the va field
 	c["va"] = va
 	// export yaml file with yaml.v3
 	data, err := yaml.Marshal(&c)
@@ -112,27 +123,29 @@ func ReplaceVA(configDir string, va virtualaccount.VAcct) {
 		log.Fatal().Msg(err.Error())
 
 	}
-	err2 := ioutil.WriteFile("./realtime1.yaml", data, 0777)
+	err2 := ioutil.WriteFile("./realtime.yaml", data, 0777)
 	if err2 != nil {
 		log.Fatal().Msg(err2.Error())
 	}
-	// fmt.Println("data written")
-
 }
 
-// export the simplified Karva expression to refactor the realtime expression trees(ETs)
-func ExportSKE(configDir string, sec string, KES interface{}) {
-	// read BackTest configuration from file  viper is not thread safe
-	viper.SetConfigName("GEP")
+/* export the simplified Karva expression to refactor the realtime expression trees(ETs)
+the file would in the same dir as the executable file
+configDir: the directory of the configuration files, let's say GEP.yaml, read info from here
+filename : the name of the yaml file, GEP.yaml would be GEP
+secname :  the yaml file section name, e.g. "GEP"
+kes : the Karva expression string slice, but put a interface{} here */
+func ExportSKE(configDir string, filename string, secname string, KES interface{}) {
+	// read GEP configuration from file. viper is not thread safe
+	viper.SetConfigName(filename)
 	viper.AddConfigPath(configDir)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println(viper.GetString("SMName"))
-	tmpMap := viper.GetStringMap(sec)
-	m := make(map[string]interface{})
 
+	tmpMap := viper.GetStringMap(secname)
+	m := make(map[string]interface{})
 	// Add Data fields
 	// make a slice to store all the function names
 	var funcnames []string
@@ -148,7 +161,7 @@ func ExportSKE(configDir string, sec string, KES interface{}) {
 	m["numConstants"] = tmpMap["numconstants"]
 	m["linkFunc"] = tmpMap["linkfunc"]
 	m["Mode"] = tmpMap["mode"]
-	//
+	// KES field
 	m["KES"] = KES
 	// export yaml file with yaml.v3
 	data, err := yaml.Marshal(&m)
@@ -159,5 +172,4 @@ func ExportSKE(configDir string, sec string, KES interface{}) {
 	if err2 != nil {
 		log.Fatal().Msg(err2.Error())
 	}
-	// fmt.Println("data written")
 }

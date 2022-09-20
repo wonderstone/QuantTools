@@ -4,6 +4,6 @@ FuncNames:
 HeadSize: 5
 KES:
     - S1
-Mode: Default
+Mode: Genome
 linkFunc: +
 numConstants: 0

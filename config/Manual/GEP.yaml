@@ -20,5 +20,5 @@ GEP:
     numGenesPerGenome:  2
     numConstants:  0
     linkFunc:  "+"
-    Mode:  "Default"
+    Mode:  "Genome" # Genome and GenomeSet, default is Genome. All cannot be parsed correctly would be default.
 

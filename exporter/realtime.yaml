@@ -1,12 +1,8 @@
 afields:
-    FDTfields:
-        - F1
-    FIndiNmsAfter:
-        - F1
-    SDTfields:
-        - S1
-    SIndiNmsAfter:
-        - S1
+    sindinmsafter:
+        - ma1
+        - close
+        - vol
 contractprop:
     confname: ContractProp
     cpdatadir: ./config/Manual
@@ -43,20 +39,22 @@ pa:
     riskfreerate: 0
 stgmodel:
     smdatadir: ./config/Manual
-    smgepyype: Genome
+    smgeptype: Genome
     smname: Strategy
     strategymodule: Simple
 va:
     sacct:
         inittime: 2017/10/9 9:39
         udtime: 2017/10/9 9:39
-        mktval: 100000
-        fundavail: 100000
+        mktval: 200000
+        fundavail: 200000
         allprofit: 0
         allcommission: 0
         posmap: {}
-        marketvalueslice: []
-        uuid: db8e8eab-4d37-4233-acb0-53d5daf3ecc6
+        marketvalueslice:
+            - time: 2017/10/9 9:39
+              mktval: 200000
+        uuid: 0ae2db9a-cc9c-413a-a032-3b9d561f69d9
     facct:
         inittime: 2017/10/9 9:39
         udtime: 2017/10/9 9:39
@@ -69,4 +67,4 @@ va:
         marketvalueslice:
             - time: 2017/10/9 9:39
               mktval: 100000
-        uuid: 7eb4647f-5b9e-41ce-9fa1-9eb3503dce34
+        uuid: 3771cf9e-baa6-4a33-ac2f-7b81cbc5cabf
