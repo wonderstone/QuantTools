@@ -1,0 +1,14 @@
+# the structure of this yaml simulates the info in real transaction
+# change if needed
+StockAccount:
+    Username: A654332
+    Password: wonder123
+FuturesAccount:
+    Username: F345677
+    Password: wonder321
+StockMarketQuotesInfo:
+    IPAddr:  100.102.121.116
+    Port: 35532
+FuturesMarketQuotesInfo:
+    IPAddr:  101.102.121.100
+    Port: 35531

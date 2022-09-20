@@ -1,14 +1,18 @@
 package framework
 
 import (
+	"fmt"
+
 	"github.com/wonderstone/QuantTools/account"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
+	"github.com/wonderstone/QuantTools/exporter"
 
 	"io/ioutil"
 
 	"github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/matcher"
+	"github.com/wonderstone/QuantTools/realinfo"
 
 	"github.com/wonderstone/QuantTools/perfeval"
 	"github.com/wonderstone/QuantTools/strategyModule"
@@ -201,7 +205,7 @@ func NewRealTime(va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, 
 	}
 }
 
-func NewRealTimeConfig(dir string) RealTime {
+func NewRealTimeConfig(dir string, va *virtualaccount.VAcct) RealTime {
 	viper.SetConfigName("realtime")
 	viper.AddConfigPath(dir)
 	err := viper.ReadInConfig()
@@ -209,7 +213,7 @@ func NewRealTimeConfig(dir string) RealTime {
 		panic(err)
 	}
 
-	va := virtualaccount.NewVirtualAccountFromConfig(dir)
+	// va := virtualaccount.NewVirtualAccountFromConfig(dir)
 	SInstrNs := viper.GetStringSlice("DataFields.sinstrnames")
 	SIndiNs := viper.GetStringSlice("AFields.SIndiNmsAfter")
 	SRDtfields := viper.GetStringSlice("DataFields.scsvdatafields")
@@ -226,7 +230,7 @@ func NewRealTimeConfig(dir string) RealTime {
 	SMName := viper.GetString("StgModel.SMName")
 	SMDataDir := viper.GetString("StgModel.SMDataDir")
 	cpm := cp.NewCPMap("ContractProp", dir)
-	return NewRealTime(&va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
+	return NewRealTime(va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
 
@@ -458,4 +462,23 @@ func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType) p
 	PE := perfeval.NewPerfEval()
 	PE.MktValSlice = MarketValueSlice
 	return PE.CalcPerfEvalResult()
+}
+
+func (RT *RealTime) ActOnRTData(configdir string, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
+	viper.SetConfigName("realtime")
+	viper.AddConfigPath(configdir)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	// 1.1 读取账户操作必要信息配置文件：
+	SI := realinfo.NewStockInfoFromConfig(configdir, "accountinfo")
+	FI := realinfo.NewFuturesInfoFromConfig(configdir, "accountinfo")
+	fmt.Println(SI, FI)
+	// 2.0 defer 将va数据更新写入到realtime.yaml中
+	defer exporter.ReplaceVA("../config/Manual", *RT.VA)
+
+	// 3.0 dataprocessor中RealTimeProcess
+
 }

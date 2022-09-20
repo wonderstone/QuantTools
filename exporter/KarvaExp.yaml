@@ -1,0 +1,9 @@
+FuncNames:
+    - '-'
+    - /
+HeadSize: 5
+KES:
+    - S1
+Mode: Default
+linkFunc: +
+numConstants: 0

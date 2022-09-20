@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wonderstone/QuantTools/account/virtualaccount"
 )
 
 // test NewBackTestConfig
@@ -14,7 +15,8 @@ func TestNewBackTestConfig(t *testing.T) {
 }
 
 func TestNewRealTimeConfig(t *testing.T) {
-	rt := NewRealTimeConfig("../config/Manual")
+	va := virtualaccount.NewVirtualAccountFromConfig("../config/Manual")
+	rt := NewRealTimeConfig("../config/Manual", &va)
 	assert.Equal(t, "2017/10/9 9:39", rt.VA.SAcct.InitTime)
 
 }

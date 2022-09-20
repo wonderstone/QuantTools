@@ -1,0 +1,70 @@
+afields:
+    sindinmsafter:
+        - ma1
+        - close
+        - vol
+contractprop:
+    confname: ContractProp
+    cpdatadir: ./config/Manual
+datafields:
+    fcsvdatafields: []
+    findinames: []
+    finstrnames: []
+    scsvdatafields:
+        - open
+        - high
+        - low
+        - close
+        - vol
+        - amount
+        - change
+        - changerate
+        - amplitude
+        - openinterest
+        - ma1
+        - ma2
+        - ma3
+        - ma4
+    sindinames:
+        - close
+        - vol
+        - ma1
+    sinstrnames:
+        - SZ002673
+matcherparam:
+    matcherslippage4f: 1
+    matcherslippage4s: 0.01
+pa:
+    patype: TA
+    riskfreerate: 0
+stgmodel:
+    smdatadir: ./config/Manual
+    smgeptype: Genome
+    smname: Strategy
+    strategymodule: Simple
+va:
+    sacct:
+        inittime: 2017/10/9 9:39
+        udtime: 2017/10/9 9:39
+        mktval: 100000
+        fundavail: 100000
+        allprofit: 0
+        allcommission: 0
+        posmap: {}
+        marketvalueslice:
+            - time: 2017/10/9 9:39
+              mktval: 100000
+        uuid: bdaa23c5-60cf-492e-bd79-b4c199ab3f7b
+    facct:
+        inittime: 2017/10/9 9:39
+        udtime: 2017/10/9 9:39
+        bmkval: 100000
+        mktval: 100000
+        fundavail: 100000
+        allprofit: 0
+        allcommission: 0
+        posmap: {}
+        marketvalueslice:
+            - time: 2017/10/9 9:39
+              mktval: 100000
+        uuid: 12e2cd4f-d76f-4f6c-9add-64d05d58de7c

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -54,4 +55,12 @@ func main() {
 			log.Fatal().Msg(err.Error())
 		}
 	}
+	// realtime job part
+	// 1.0 从realtime.yaml中读取数据信息
+	configdir := "./"
+	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
+	rt := framework.NewRealTimeConfig(configdir, &vatmp)
+	fmt.Println(rt)
+	// rt.ActOnRTData()
+
 }

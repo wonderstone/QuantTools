@@ -4,6 +4,7 @@ package dataprocessor
 
 import (
 	// "sync"
+	"errors"
 	"time"
 	//"github.com/wonderstone/QuantTools/data/marketdata"
 )
@@ -28,6 +29,20 @@ func NewBarDE(BarTime string, InstID string, IndiDataMap map[string]float64) *Ba
 type BarC struct {
 	Stockdata   map[string]*BarDE // use instID as key
 	Futuresdata map[string]*BarDE
+}
+
+func (bc *BarC) GetTimeStamp() (string, error) {
+	// check if stockdata is empty
+	if len(bc.Stockdata) != 0 {
+		for _, v := range bc.Stockdata {
+			return v.BarTime, nil
+		}
+	} else if len(bc.Futuresdata) != 0 {
+		for _, v := range bc.Futuresdata {
+			return v.BarTime, nil
+		}
+	}
+	return "", errors.New("BarC is empty")
 }
 
 func NewBarC(targetNum int) *BarC {
