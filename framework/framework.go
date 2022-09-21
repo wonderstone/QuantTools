@@ -1,8 +1,6 @@
 package framework
 
 import (
-	"fmt"
-
 	"github.com/wonderstone/QuantTools/account"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
@@ -12,7 +10,6 @@ import (
 
 	"github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/matcher"
-	"github.com/wonderstone/QuantTools/realinfo"
 
 	"github.com/wonderstone/QuantTools/perfeval"
 	"github.com/wonderstone/QuantTools/strategyModule"
@@ -72,6 +69,8 @@ type BackTest struct {
 }
 
 type RealTime struct {
+	// 实盘任务所需真实信息 IP Port user password等
+	Info map[string]interface{}
 	// Virtual Account
 	VA *virtualaccount.VAcct
 	// Section for Strategy Targets and info fields
@@ -176,11 +175,12 @@ func NewBackTestConfig(sec string, dir string) BackTest {
 		tmpMap["riskfreerate"].(float64), tmpMap["patype"].(string))
 }
 
-func NewRealTime(va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, SRDtfields []string, FInstrNs []string, FIndiNs []string, FRDtfields []string,
+func NewRealTime(info map[string]interface{}, va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, SRDtfields []string, FInstrNs []string, FIndiNs []string, FRDtfields []string,
 	ConfName string, CPDataDir string, cpm cp.CPMap, MatcherSlpg4S float64, MatcherSlpg4F float64,
 	StrategyMod string, SMGEPType string, SMName string, SMDataDir string) RealTime {
 	return RealTime{
 		// 所有项目均为用户设置
+		Info: info,
 		// 账户初始化参数，用户资金
 		VA: va,
 		// Section for Strategy Targets and info fields
@@ -205,15 +205,14 @@ func NewRealTime(va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, 
 	}
 }
 
-func NewRealTimeConfig(dir string, va *virtualaccount.VAcct) RealTime {
-	viper.SetConfigName("realtime")
+// NewRealTimeConfig 从配置文件中读取配置信息 filename could be realtime
+func NewRealTimeConfig(dir string, filename string, info map[string]interface{}, va *virtualaccount.VAcct) RealTime {
+	viper.SetConfigName(filename)
 	viper.AddConfigPath(dir)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
-
-	// va := virtualaccount.NewVirtualAccountFromConfig(dir)
 	SInstrNs := viper.GetStringSlice("DataFields.sinstrnames")
 	SIndiNs := viper.GetStringSlice("AFields.SIndiNmsAfter")
 	SRDtfields := viper.GetStringSlice("DataFields.scsvdatafields")
@@ -230,7 +229,7 @@ func NewRealTimeConfig(dir string, va *virtualaccount.VAcct) RealTime {
 	SMName := viper.GetString("StgModel.SMName")
 	SMDataDir := viper.GetString("StgModel.SMDataDir")
 	cpm := cp.NewCPMap("ContractProp", dir)
-	return NewRealTime(va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
+	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
 
@@ -250,13 +249,15 @@ func getFileMap(path string) map[string]void {
 }
 
 // 0. 输出strategy
-func (BT *BackTest) GetStrategy(sec string, dir string) strategyModule.IStrategy {
-	switch BT.StrategyMod {
-	case "Simple":
-		return strategyModule.NewStrategyFromConfig(sec, dir)
-	default:
-		return strategyModule.NewStrategyFromConfig(sec, dir)
-	}
+func (BT *BackTest) GetStrategy(sec string, dir string, tag string) strategyModule.IStrategy {
+	// switch BT.StrategyMod {
+	// case "Simple":
+	// 	return strategyModule.NewStrategyFromConfig(sec, dir)
+	// default:
+	// 	return strategyModule.NewStrategyFromConfig(sec, dir)
+	// }
+
+	return strategyModule.GetStrategy(sec, dir, tag)
 }
 
 // 1. 准备数据
@@ -331,7 +332,6 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 		panic("没有操作标的")
 	}
 
-	// BT.Lock()
 	var lastdatetime string
 	// get a matcher and a temp orderResult
 	simplematcher := matcher.NewSimpleMatcher(BT.MatcherSlippage4S, BT.MatcherSlippage4F)
@@ -352,6 +352,10 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 						Msg("Match details")
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
 					tmpOrderRes.IsExecuted = true
+					VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
+					// this part is for test only
+					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
+
 				}
 
 			}
@@ -362,23 +366,25 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
 					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
 					tmpOrderRes.IsExecuted = true
+					VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
+
 				}
 			}
 		}
 
-		//  循环股票和期货的orderslice 账户对order进行更新
-		for i := range tmpOrderRes.StockOrderS {
-			if tmpOrderRes.StockOrderS[i].IsExecuted {
-				VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
-				// this part is for test only
-				log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
-			}
-		}
-		for i := range tmpOrderRes.FuturesOrderS {
-			if tmpOrderRes.FuturesOrderS[i].IsExecuted {
-				VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
-			}
-		}
+		//  循环股票和期货的orderslice 账户对order进行更新,原则上可以与上面合并 已经合并  测试一下
+		// for i := range tmpOrderRes.StockOrderS {
+		// 	if tmpOrderRes.StockOrderS[i].IsExecuted {
+		// 		VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
+		// 		// this part is for test only
+		// 		log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
+		// 	}
+		// }
+		// for i := range tmpOrderRes.FuturesOrderS {
+		// 	if tmpOrderRes.FuturesOrderS[i].IsExecuted {
+		// 		VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
+		// 	}
+		// }
 
 		//2.0 判断是否符合close或MTM条件 确认是否需收盘
 		if lastdatetime != "" {
@@ -464,21 +470,127 @@ func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType) p
 	return PE.CalcPerfEvalResult()
 }
 
-func (RT *RealTime) ActOnRTData(configdir string, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
-	viper.SetConfigName("realtime")
-	viper.AddConfigPath(configdir)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
+func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
 
-	// 1.1 读取账户操作必要信息配置文件：
-	SI := realinfo.NewStockInfoFromConfig(configdir, "accountinfo")
-	FI := realinfo.NewFuturesInfoFromConfig(configdir, "accountinfo")
-	fmt.Println(SI, FI)
 	// 2.0 defer 将va数据更新写入到realtime.yaml中
-	defer exporter.ReplaceVA("../config/Manual", *RT.VA)
+	defer exporter.ReplaceVA("../config/Manual", "realtime", *RT.VA)
 
 	// 3.0 dataprocessor中RealTimeProcess
+	var lastdatetime string
+	// get a matcher and a temp orderResult
+	simplematcher := matcher.NewSimpleMatcher(RT.MatcherSlippage4S, RT.MatcherSlippage4F)
+	tmpOrderRes := strategyModule.NewOrderResult()
+	// 循环从BarC channel中读取数据 直到channel关闭，获取的data为BarC类型
+	for data := range bc {
+		// ts:=getRealTimeStamp()
+		timestamp, err := data.GetTimeStamp()
+		//  2.3 循环股票和期货的orderslice 基于bar的open撮合
+		for i := range tmpOrderRes.StockOrderS {
+			// 验证数据是否存在,存在时才撮合
+			if matchinfo, isOk := data.Stockdata[tmpOrderRes.StockOrderS[i].InstID]; isOk {
+				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
+					// this part is for test only
+					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).
+						Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
+						Msg("Match details")
+					// 采用本bar的open价格进行撮合
+					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
+					tmpOrderRes.IsExecuted = true
+					RT.VA.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
+					// this part is for test only
+					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).Msg("Stock Order Executed")
 
+				}
+
+			}
+		}
+		for i := range tmpOrderRes.FuturesOrderS {
+			// 验证数据是否存在,存在时才撮合
+			if matchinfo, isOk := data.Futuresdata[tmpOrderRes.FuturesOrderS[i].InstID]; isOk {
+				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
+					// 采用本bar的open价格进行撮合
+					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
+					tmpOrderRes.IsExecuted = true
+					RT.VA.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
+					// in case you wanna put some log here!
+				}
+			}
+		}
+		//2.0 判断是否符合close或MTM条件 确认是否需收盘
+		if lastdatetime != "" {
+			// 股票收盘
+			if len(data.Stockdata) != 0 && strings.Fields(lastdatetime)[0] != strings.Fields(timestamp)[0] {
+				//2.0.1 如果符合 账户进行对应操作
+				RT.VA.SAcct.ActOnCM()
+				// this part is for test only
+				log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Market Close")
+			}
+			// 期货实盘应该以接收到收盘数据为准，这个过程应该是由其他goroutine完成的
+		}
+		//  2.1 账户接收数据刷新
+		if len(data.Stockdata) != 0 {
+			for instID, barC := range data.Stockdata {
+				if !strategyModule.ContainNaN(barC.IndiDataMap) {
+					RT.VA.SAcct.ActOnUpdateMI(timestamp, instID, barC.IndiDataMap["close"])
+					// this part is for test only
+					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).
+						Float64("AccountVal", RT.VA.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
+						Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
+						Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
+						Str("Target", instID).
+						Msg("Data")
+					// if instID is in PosMap then log
+					if _, ok := RT.VA.SAcct.PosMap[instID]; ok {
+						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).
+							Float64("positdy", RT.VA.SAcct.PosMap[instID].CalPosTdyNum()).
+							Float64("posipre", RT.VA.SAcct.PosMap[instID].CalPosPrevNum()).
+							Float64("Equity", RT.VA.SAcct.PosMap[instID].CalEquity()).
+							Float64("UnRealProfit", RT.VA.SAcct.PosMap[instID].CalUnRealizedProfit()).
+							Float64("AllCommission", RT.VA.SAcct.AllCommission).Float64("AllProfit", RT.VA.SAcct.AllProfit).
+							Float64("Fundavail", RT.VA.SAcct.Fundavail).Float64("Equity4ALL", RT.VA.SAcct.Equity()).
+							Msg("Account")
+					}
+				}
+			}
+		}
+		if len(data.Futuresdata) != 0 {
+			for instID, barC := range data.Futuresdata {
+				if !strategyModule.ContainNaN(barC.IndiDataMap) {
+					RT.VA.FAcct.ActOnUpdateMI(timestamp, instID, barC.IndiDataMap["close"])
+				}
+			}
+		}
+		//  2.2 策略接收数据并经过ActOnData得到对应账户的orderslice
+		if err != nil {
+			switch mode {
+			case "GEP":
+				tmpOrderRes = strategymodule.ActOnData(timestamp, data, RT.VA, CPMap, Eval)
+				SendOrders(RT.Info, tmpOrderRes)
+			case "Manual":
+				tmpOrderRes = strategymodule.ActOnDataMAN(timestamp, data, RT.VA, CPMap)
+				SendOrders(RT.Info, tmpOrderRes)
+			default:
+				panic("mode is not defined")
+			}
+		}
+
+		// this part is for test only
+		log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Strategy ActOnData Finished")
+		// 临时看一下，记得删除
+		// fmt.Println("mapkeydt:", mapkeydt, "lastdatetime:", lastdatetime)
+		lastdatetime = timestamp
+
+	}
+
+}
+
+func (RT *RealTime) ActOnCM(mc <-chan map[string]map[string]float64) {
+	// 1. get data from mc and va update with the data
+	for data := range mc {
+		for timestamp, kv := range data {
+			for k, v := range kv {
+				RT.VA.FAcct.ActOnMTM(timestamp, k, v)
+			}
+		}
+	}
 }
