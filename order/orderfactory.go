@@ -33,19 +33,19 @@ type RealFuturesOrder struct {
 	// Port           string
 }
 
-func GetStockOrder(so StockOrder, info map[string]string) RealStockOrder {
+func GetStockOrder(so StockOrder, info map[string]interface{}) RealStockOrder {
 	return RealStockOrder{
 		InstID:         so.InstID,
 		OrderTime:      so.OrderTime,
 		OrderPrice:     so.OrderPrice,
 		OrderNum:       so.OrderNum,
 		OrderDirection: so.OrderDirection,
-		User:           info["user"],
-		Password:       info["password"],
+		User:           info["user"].(string),
+		Password:       info["password"].(string),
 	}
 }
 
-func GetFuturesOrder(fo FuturesOrder, info map[string]string) RealFuturesOrder {
+func GetFuturesOrder(fo FuturesOrder, info map[string]interface{}) RealFuturesOrder {
 	return RealFuturesOrder{
 		InstID:         fo.InstID,
 		IsExecuted:     fo.IsExecuted,
@@ -54,7 +54,7 @@ func GetFuturesOrder(fo FuturesOrder, info map[string]string) RealFuturesOrder {
 		OrderNum:       fo.OrderNum,
 		OrderDirection: fo.OrderDirection,
 		OrderType:      fo.OrderType,
-		User:           info["user"],
-		Password:       info["password"],
+		User:           info["user"].(string),
+		Password:       info["password"].(string),
 	}
 }

@@ -38,7 +38,7 @@ func NewSimpleStrategy(SInstNms, SIndiNms, FInstNms, FIndiNms []string, Snum, Fn
 }
 
 // this function is nessary for the framework
-func NewStrategyFromConfig(sec string, dir string) SimpleStrategy {
+func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
 	viper.SetConfigName("BackTest")
 	viper.AddConfigPath(dir)
 	err := viper.ReadInConfig()

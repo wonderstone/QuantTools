@@ -1,12 +1,12 @@
-AFields:
-    SIndiNmsAfter:
+afields:
+    sindinmsafter:
         - ma1
         - close
         - vol
-ContractProp:
-    CPDataDir: ./config/Manual
-    ConfName: ContractProp
-DataFields:
+contractprop:
+    confname: ContractProp
+    cpdatadir: ./config/Manual
+datafields:
     fcsvdatafields: []
     findinames: []
     finstrnames: []
@@ -30,19 +30,19 @@ DataFields:
         - vol
         - ma1
     sinstrnames:
-        - SZ002673
-MatcherParam:
-    MatcherSlippage4F: 1
-    MatcherSlippage4S: 0.01
-PA:
-    PAType: TA
-    RiskFreeRate: 0
-StgModel:
-    SMDataDir: ./config/Manual
-    SMGEPType: Genome
-    SMName: Strategy
-    StrategyModule: Simple
-VA:
+        - sz002673
+matcherparam:
+    matcherslippage4f: 1
+    matcherslippage4s: 0.01
+pa:
+    patype: TA
+    riskfreerate: 0
+stgmodel:
+    smdatadir: ./config/Manual
+    smgeptype: Genome
+    smname: Strategy
+    strategymodule: Simple
+va:
     sacct:
         inittime: 2017/10/9 9:39
         udtime: 2021/1/5 10:30
@@ -51,12 +51,12 @@ VA:
         allprofit: 0
         allcommission: 50.941736999999996
         posmap:
-            SZ002673:
+            sz002673:
                 udtime: 2021/1/5 10:30
                 postdys: []
                 posprevs:
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4281
                       lastprice: 9.8661
                       num: 10
@@ -67,7 +67,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -78,7 +78,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -89,7 +89,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -100,7 +100,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4184
                       lastprice: 9.8661
                       num: 10
@@ -111,7 +111,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4086
                       lastprice: 9.8661
                       num: 10
@@ -122,7 +122,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4281
                       lastprice: 9.8661
                       num: 10
@@ -133,7 +133,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3891
                       lastprice: 9.8661
                       num: 10
@@ -144,7 +144,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3989
                       lastprice: 9.8661
                       num: 10
@@ -155,7 +155,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3891
                       lastprice: 9.8661
                       num: 10
@@ -168,14 +168,13 @@ VA:
         marketvalueslice: []
         uuid: 8ff4553f-48b7-4837-ba15-8dd3563e5c87
     facct:
-        inittime: 2017/10/9 9:39
-        udtime: 2017/10/9 9:39
+        inittime: ""
+        udtime: ""
         bmkval: 0
         mktval: 0
         fundavail: 0
         allprofit: 0
         allcommission: 0
         posmap: {}
-        marketvalueslice:
-            - time: 2017/10/9 9:39
-              mktval: 0
+        marketvalueslice: []
+        uuid: ""

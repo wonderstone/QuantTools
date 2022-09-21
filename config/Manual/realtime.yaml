@@ -30,7 +30,7 @@ DataFields:
         - vol
         - ma1
     sinstrnames:
-        - SZ002673
+        - sz002673
 MatcherParam:
     MatcherSlippage4F: 1
     MatcherSlippage4S: 0.01
@@ -51,12 +51,12 @@ VA:
         allprofit: 0
         allcommission: 50.941736999999996
         posmap:
-            SZ002673:
+            sz002673:
                 udtime: 2021/1/5 10:30
                 postdys: []
                 posprevs:
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4281
                       lastprice: 9.8661
                       num: 10
@@ -67,7 +67,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -78,7 +78,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -89,7 +89,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4378
                       lastprice: 9.8661
                       num: 10
@@ -100,7 +100,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4184
                       lastprice: 9.8661
                       num: 10
@@ -111,7 +111,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4086
                       lastprice: 9.8661
                       num: 10
@@ -122,7 +122,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.4281
                       lastprice: 9.8661
                       num: 10
@@ -133,7 +133,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3891
                       lastprice: 9.8661
                       num: 10
@@ -144,7 +144,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3989
                       lastprice: 9.8661
                       num: 10
@@ -155,7 +155,7 @@ VA:
                         taxrate: 0.001
                         commbrokerrate: 6.87e-05
                     - udtime: 2021/1/5 10:30
-                      instid: SZ002673
+                      instid: sz002673
                       baseprice: 9.3891
                       lastprice: 9.8661
                       num: 10

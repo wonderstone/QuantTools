@@ -3,12 +3,17 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"time"
+
+	// "fmt"
 	"os"
 	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
+	"github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/framework"
+	"github.com/wonderstone/QuantTools/realinfo"
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
 
@@ -23,7 +28,7 @@ type manager struct {
 // NewManager creates a new manager instance
 func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 	BT := framework.NewBackTestConfig(secBT, dir)
-	STG := BT.GetStrategy(secSTG, dir)
+	STG := BT.GetStrategy(secSTG, dir, "simple")
 	return &manager{
 		BT:  &BT,
 		STG: STG,
@@ -55,12 +60,31 @@ func main() {
 			log.Fatal().Msg(err.Error())
 		}
 	}
+
 	// realtime job part
+
 	// 1.0 从realtime.yaml中读取数据信息
 	configdir := "./"
 	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
-	rt := framework.NewRealTimeConfig(configdir, &vatmp)
+	info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
+
+	rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
 	fmt.Println(rt)
-	// rt.ActOnRTData()
+
+	// build a barc channel
+	ch := make(chan *dataprocessor.BarC)
+	// pretend that you finished the data subscribe process, and send data to channel
+	go func() {
+		for _, dts := range m.BT.BCM.BarCMapkeydts {
+			ch <- m.BT.BCM.BarCMap[dts]
+			// delay for 0.1 second
+			time.Sleep(100 * time.Millisecond)
+
+		}
+		// close the channel
+		close(ch)
+	}()
+	rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	//
 
 }

@@ -38,3 +38,12 @@ type IStrategy interface {
 	ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult)
 	ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult)
 }
+
+func GetStrategy(sec string, dir string, tag string) IStrategy {
+	switch tag {
+	case "simple":
+		return NewSimpleStrategyFromConfig(sec, dir)
+	default:
+		return NewSimpleStrategyFromConfig(sec, dir)
+	}
+}
