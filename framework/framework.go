@@ -460,14 +460,14 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 
 }
 
-func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType) perfeval.PerfEvalResult {
+func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType, tag string) float64 {
 	//  4.0 获得账户的mkvslice 进行评估
 	// new a performanceevaluator
 	// BT.Lock()
 	// defer BT.Unlock()
 	PE := perfeval.NewPerfEval()
 	PE.MktValSlice = MarketValueSlice
-	return PE.CalcPerfEvalResult()
+	return PE.CalcPerfEvalResult(tag)
 }
 
 func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {

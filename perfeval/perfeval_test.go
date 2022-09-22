@@ -1,6 +1,7 @@
 package perfeval
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -35,17 +36,21 @@ func TestNewPerfEval(t *testing.T) {
 	}
 
 	// test CalcPerfEvalResult
-	res := PE.CalcPerfEvalResult()
-	if res.TotalReturn != 1.016490765171504 {
+
+	if PE.CalcPerfEvalResult("TR") != 1.016490765171504 {
+		fmt.Println(PE.CalcPerfEvalResult("TR"))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if res.AnnualizedReturn != 1.5808703270674531 {
+	if PE.CalcPerfEvalResult("AR") != 1.5808703270674531 {
+		fmt.Println(PE.CalcPerfEvalResult("AR"))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if res.MaxDrawDown != 0.04930966469428011 {
+	if PE.CalcPerfEvalResult("MR") != 32.06005023292793 {
+		fmt.Println(PE.CalcPerfEvalResult("MR"))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if res.SharpeRatio != 3.41925859530848 {
+	if PE.CalcPerfEvalResult("SR") != 3.354371706040631 {
+		fmt.Println(PE.CalcPerfEvalResult("SR"))
 		t.Error("CalcPerfEvalResult failed")
 	}
 

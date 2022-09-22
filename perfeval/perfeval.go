@@ -19,19 +19,29 @@ func NewPerfEval() (PE *PerfEval) {
 	return
 }
 
-type PerfEvalResult struct {
-	TotalReturn      float64
-	AnnualizedReturn float64
-	MaxDrawDown      float64
-	SharpeRatio      float64
-}
+// type PerfEvalRes interface{
+// 	Eval() float64
+// }
 
-func (p *PerfEval) CalcPerfEvalResult() PerfEvalResult {
-	return PerfEvalResult{
-		TotalReturn:      p.TotalReturn(),
-		AnnualizedReturn: p.AnnualizedReturn(),
-		MaxDrawDown:      p.MaxDrawDown(),
-		SharpeRatio:      p.SharpeRatio(0.0),
+// type PerfEvalResult struct {
+// 	TotalReturn      float64
+// 	AnnualizedReturn float64
+// 	MaxDrawDown      float64
+// 	SharpeRatio      float64
+// }
+
+func (p *PerfEval) CalcPerfEvalResult(tag string) float64 {
+	switch tag {
+	case "TR":
+		return p.TotalReturn()
+	case "AR":
+		return p.AnnualizedReturn()
+	case "MR":
+		return p.AnnualizedReturn() / p.MaxDrawDown()
+	case "SR":
+		return p.SharpeRatio(0.03)
+	default:
+		return p.TotalReturn()
 	}
 }
 
