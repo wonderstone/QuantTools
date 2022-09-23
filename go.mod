@@ -3,6 +3,7 @@ module github.com/wonderstone/QuantTools
 go 1.18
 
 require (
+	github.com/emirpasic/gods v1.18.1
 	github.com/google/uuid v1.3.0
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.13.0
