@@ -36,21 +36,26 @@ func TestNewPerfEval(t *testing.T) {
 	}
 
 	// test CalcPerfEvalResult
-
-	if PE.CalcPerfEvalResult("TR") != 1.016490765171504 {
-		fmt.Println(PE.CalcPerfEvalResult("TR"))
+	einfo := make(map[string]interface{})
+	einfo["tag"] = "TR"
+	if PE.CalcPerfEvalResult(einfo) != 1.016490765171504 {
+		fmt.Println(PE.CalcPerfEvalResult(einfo))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if PE.CalcPerfEvalResult("AR") != 1.5808703270674531 {
-		fmt.Println(PE.CalcPerfEvalResult("AR"))
+	einfo["tag"] = "AR"
+	if PE.CalcPerfEvalResult(einfo) != 1.5808703270674531 {
+		fmt.Println(PE.CalcPerfEvalResult(einfo))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if PE.CalcPerfEvalResult("MR") != 32.06005023292793 {
-		fmt.Println(PE.CalcPerfEvalResult("MR"))
+	einfo["tag"] = "MR"
+	if PE.CalcPerfEvalResult(einfo) != 32.06005023292793 {
+		fmt.Println(PE.CalcPerfEvalResult(einfo))
 		t.Error("CalcPerfEvalResult failed")
 	}
-	if PE.CalcPerfEvalResult("SR") != 3.354371706040631 {
-		fmt.Println(PE.CalcPerfEvalResult("SR"))
+	einfo["tag"] = "SR"
+	einfo["par"] = 0.03
+	if PE.CalcPerfEvalResult(einfo) != 3.354371706040631 {
+		fmt.Println(PE.CalcPerfEvalResult(einfo))
 		t.Error("CalcPerfEvalResult failed")
 	}
 

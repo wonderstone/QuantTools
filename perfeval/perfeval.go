@@ -30,8 +30,8 @@ func NewPerfEval() (PE *PerfEval) {
 // 	SharpeRatio      float64
 // }
 
-func (p *PerfEval) CalcPerfEvalResult(tag string) float64 {
-	switch tag {
+func (p *PerfEval) CalcPerfEvalResult(einfo map[string]interface{}) float64 {
+	switch einfo["tag"].(string) {
 	case "TR":
 		return p.TotalReturn()
 	case "AR":
@@ -39,7 +39,7 @@ func (p *PerfEval) CalcPerfEvalResult(tag string) float64 {
 	case "MR":
 		return p.AnnualizedReturn() / p.MaxDrawDown()
 	case "SR":
-		return p.SharpeRatio(0.03)
+		return p.SharpeRatio(einfo["par"].(float64))
 	default:
 		return p.TotalReturn()
 	}
