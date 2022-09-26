@@ -5,6 +5,8 @@
 package marketdata
 
 import (
+	"strconv"
+
 	"github.com/wonderstone/QuantTools/data"
 )
 
@@ -16,16 +18,16 @@ type FuturesTick struct {
 	UpdateTimeStamp string
 	InstID          string
 	LastPrice       float64
-	OpenPrice       float64 //建议考虑删除 日开盘价
-	HighestPrice    float64 //建议考虑删除 日最高价
-	LowestPrice     float64 //建议考虑删除 日最低价
-	Volume          float64 //成交量
-	Amount          float64 //成交额 ctp里面用的是turnover
-	OpenInterest    float64 //持仓数
-	BidPrice1       float64 //建议删除
-	BidVolume1      float64 //建议删除
-	AskPrice1       float64 //建议删除
-	AskVolume1      float64 //建议删除
+	OpenPrice       float64   //建议考虑删除 日开盘价
+	HighestPrice    float64   //建议考虑删除 日最高价
+	LowestPrice     float64   //建议考虑删除 日最低价
+	Volume          float64   //成交量
+	Amount          float64   //成交额 ctp里面用的是turnover
+	OpenInterest    float64   //持仓数
+	BidPrice        []float64 //建议删除
+	BidVolume       []float64 //建议删除
+	AskPrice        []float64 //建议删除
+	AskVolume       []float64 //建议删除
 }
 
 /*********************/
@@ -42,15 +44,15 @@ type StockTick struct {
 	HighestPrice    float64
 	LowestPrice     float64
 	Volume          float64
-	Amount          float64 //成交额 没错  它竟然使用了turnover而不是amount
-	BidPrice1       float64 //建议删除
-	BidVolume1      float64 //建议删除
-	AskPrice1       float64 //建议删除
-	AskVolume1      float64 //建议删除
+	Amount          float64   //成交额 没错  它竟然使用了turnover而不是amount
+	BidPrice        []float64 //建议删除
+	BidVolume       []float64 //建议删除
+	AskPrice        []float64 //建议删除
+	AskVolume       []float64 //建议删除
 }
 
 // NewFuturesTick returns a new FuturesTick
-func NewFuturesTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPrice, LowestPrice, Volume, Amount, OpenInterest, BidPrice1, BidVolume1, AskPrice1, AskVolume1 float64) (ft FuturesTick) {
+func NewFuturesTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPrice, LowestPrice, Volume, Amount, OpenInterest float64, BidPrice, BidVolume, AskPrice, AskVolume []float64) (ft FuturesTick) {
 	ft.UpdateTimeStamp = UpdateTime
 	ft.InstID = InstID
 	ft.LastPrice = LastPrice
@@ -60,15 +62,15 @@ func NewFuturesTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPric
 	ft.Volume = Volume
 	ft.Amount = Amount
 	ft.OpenInterest = OpenInterest
-	ft.BidPrice1 = BidPrice1
-	ft.BidVolume1 = BidVolume1
-	ft.AskPrice1 = AskPrice1
-	ft.AskVolume1 = AskVolume1
+	ft.BidPrice = BidPrice
+	ft.BidVolume = BidVolume
+	ft.AskPrice = AskPrice
+	ft.AskVolume = AskVolume
 	return
 }
 
 // NewStockTick returns a new StockTick
-func NewStockTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPrice, LowestPrice, Volume, Amount, BidPrice1, BidVolume1, AskPrice1, AskVolume1 float64) (st StockTick) {
+func NewStockTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPrice, LowestPrice, Volume, Amount float64, BidPrice, BidVolume, AskPrice, AskVolume []float64) (st StockTick) {
 	st.UpdateTimeStamp = UpdateTime
 	st.InstID = InstID
 	st.LastPrice = LastPrice
@@ -77,24 +79,77 @@ func NewStockTick(UpdateTime, InstID string, LastPrice, OpenPrice, HighestPrice,
 	st.LowestPrice = LowestPrice
 	st.Volume = Volume
 	st.Amount = Amount
-	st.BidPrice1 = BidPrice1
-	st.BidVolume1 = BidVolume1
-	st.AskPrice1 = AskPrice1
-	st.AskVolume1 = AskVolume1
+	st.BidPrice = BidPrice
+	st.BidVolume = BidVolume
+	st.AskPrice = AskPrice
+	st.AskVolume = AskVolume
 	return
 }
 
-func (ft *FuturesTick) GetUpdateInfo() (ui data.UpdateMI) {
+// Get updateInfo from  tick data by tag
+func (ft *FuturesTick) GetUpdateInfo(tag string) (ui data.UpdateMI) {
+	// get the last character of tag
+	// if it is a number, get the number
+	v, _ := strconv.Atoi(tag[len(tag)-1:])
 	ui.UpdateTimeStamp = ft.UpdateTimeStamp
 	ui.InstID = ft.InstID
-	ui.Value = ft.LastPrice
-
+	switch tag {
+	case "LastPrice":
+		ui.Value = ft.LastPrice
+	case "OpenPrice":
+		ui.Value = ft.OpenPrice
+	case "HighestPrice":
+		ui.Value = ft.HighestPrice
+	case "LowestPrice":
+		ui.Value = ft.LowestPrice
+	case "Volume":
+		ui.Value = ft.Volume
+	case "Amount":
+		ui.Value = ft.Amount
+	case "OpenInterest":
+		ui.Value = ft.OpenInterest
+	case "BidPrice" + strconv.Itoa(v):
+		ui.Value = ft.BidPrice[v]
+	case "BidVolume" + strconv.Itoa(v):
+		ui.Value = ft.BidVolume[v]
+	case "AskPrice" + strconv.Itoa(v):
+		ui.Value = ft.AskPrice[v]
+	case "AskVolume" + strconv.Itoa(v):
+		ui.Value = ft.AskVolume[v]
+	default:
+		panic("tag not found")
+	}
 	return ui
 }
-func (st *StockTick) GetUpdateInfo() (ui data.UpdateMI) {
+
+// Get updateInfor from tick data by tag
+func (st *StockTick) GetUpdateInfo(tag string) (ui data.UpdateMI) {
+	v, _ := strconv.Atoi(tag[len(tag)-1:])
 	ui.UpdateTimeStamp = st.UpdateTimeStamp
 	ui.InstID = st.InstID
-	ui.Value = st.LastPrice
-
+	switch tag {
+	case "LastPrice":
+		ui.Value = st.LastPrice
+	case "OpenPrice":
+		ui.Value = st.OpenPrice
+	case "HighestPrice":
+		ui.Value = st.HighestPrice
+	case "LowestPrice":
+		ui.Value = st.LowestPrice
+	case "Volume":
+		ui.Value = st.Volume
+	case "Amount":
+		ui.Value = st.Amount
+	case "BidPrice" + strconv.Itoa(v):
+		ui.Value = st.BidPrice[v]
+	case "BidVolume" + strconv.Itoa(v):
+		ui.Value = st.BidVolume[v]
+	case "AskPrice" + strconv.Itoa(v):
+		ui.Value = st.AskPrice[v]
+	case "AskVolume" + strconv.Itoa(v):
+		ui.Value = st.AskVolume[v]
+	default:
+		ui.Value = st.LastPrice
+	}
 	return ui
 }

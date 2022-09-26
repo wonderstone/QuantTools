@@ -28,8 +28,23 @@ func TestGetUpdateInfo(t *testing.T) {
 			Value:           3459.2,
 		},
 	}
-	testCase.Actual = testCase.value.GetUpdateInfo()
+	testCase.Actual = testCase.value.GetUpdateInfo("LastPrice")
 	if testCase.Actual != testCase.expected {
+		t.Fatal("Expected Result Not Given")
+	}
+
+	value := FuturesTick{
+		UpdateTimeStamp: "2022-05-10 12:12:12 500",
+		InstID:          "cu",
+		BidPrice:        []float64{3456.1, 3456.2, 3456.3, 3456.4, 3456.5},
+	}
+	expected := data.UpdateMI{
+		UpdateTimeStamp: "2022-05-10 12:12:12 500",
+		InstID:          "cu",
+		Value:           3456.1,
+	}
+	actual := value.GetUpdateInfo("BidPrice0")
+	if actual != expected {
 		t.Fatal("Expected Result Not Given")
 	}
 }
