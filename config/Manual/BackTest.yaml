@@ -5,7 +5,7 @@
 Default:
     #  Section for virtual account 
     StockInitValue:  100000.0
-    FuturesInitValue:  0.0
+    FuturesInitValue:  0.0  
     #  Section for data range
     BeginDate:  "2017/10/9 9:39"
     EndDate:  "2017/10/20 15:00"

@@ -123,6 +123,39 @@ func NewFAFromConfig(filename string, configpath string, sec string, cpm cp.CPMa
 
 }
 
+// Eligible check for order
+func (FA *FuturesAccount) CheckEligible(o *order.FuturesOrder) {
+	switch o.OrderType {
+	case "Open":
+		if o.CalMargin() < FA.Fundavail {
+			o.IsEligible = true
+		}
+
+	case "CloseToday":
+		// check if o.InstID is in FA.PosMap
+		if _, ok := FA.PosMap[o.InstID]; ok {
+			numl, nums := FA.PosMap[o.InstID].CalPosTdyNum()
+			if o.OrderDirection == "Buy" && numl >= o.OrderNum {
+				o.IsEligible = true
+			}
+			if o.OrderDirection == "Sell" && nums >= o.OrderNum {
+				o.IsEligible = true
+			}
+		}
+	case "ClosePrevious":
+		// check if o.InstID is in FA.PosMap
+		if _, ok := FA.PosMap[o.InstID]; ok {
+			numl, nums := FA.PosMap[o.InstID].CalPosPrevNum()
+			if o.OrderDirection == "Buy" && numl >= o.OrderNum {
+				o.IsEligible = true
+			}
+			if o.OrderDirection == "Sell" && nums >= o.OrderNum {
+				o.IsEligible = true
+			}
+		}
+	}
+}
+
 // reset the MarketValueSlice to nil
 func (FA *FuturesAccount) ResetMVSlice() {
 	FA.MarketValueSlice = nil
@@ -142,41 +175,39 @@ func (FA *FuturesAccount) Margin() (Margin float64) {
 // 浮动盈亏 = (最新价 - 开仓均价)*手数  相当于基准从开始计算
 // 持仓盈亏 = (最新价 - 持仓均价)*手数  相当于基准从昨天计算  持仓均价是用每日MTM的结算价进行替换的
 func (FA *FuturesAccount) ActOnOrder(FO *order.FuturesOrder) {
-	if !FO.IsExecuted {
-		panic("确保order实例经过matcher撮合")
-	}
-	if FA.Fundavail <= FO.CalMargin() {
-		// panic("确保账户具有足够资金")
-	} else {
-		// in principle, backtest should be done under one mutex lock
-		// insurance: add a mutex for stock account write
-		// FA.Lock()
-		// defer 后进先出
-		// defer FA.Unlock()
-		// 1. 初始化时间字段不修正
-		// 2. 修正刷新时间
-		FA.UdTime = FO.OrderTime
-		// 7. 调整PosMap内的对应PositionSlice
-		RealizedProfit, Comm, UnRealizedProfit := 0.0, 0.0, 0.0
-		if _, ok := FA.PosMap[FO.InstID]; ok {
-			RealizedProfit, Comm, UnRealizedProfit = FA.PosMap[FO.InstID].UpdateWithOrder(FO)
+	if FO.IsExecuted {
+		if FA.Fundavail <= FO.CalMargin() {
+			// panic("确保账户具有足够资金")
 		} else {
-			FA.PosMap[FO.InstID] = NewPosSlice() //&PositionSlice{} //{UdTime: FO.OrderTime}
-			RealizedProfit, Comm, UnRealizedProfit = FA.PosMap[FO.InstID].UpdateWithOrder(FO)
+			// in principle, backtest should be done under one mutex lock
+			// insurance: add a mutex for stock account write
+			// FA.Lock()
+			// defer 后进先出
+			// defer FA.Unlock()
+			// 1. 初始化时间字段不修正
+			// 2. 修正刷新时间
+			FA.UdTime = FO.OrderTime
+			// 7. 调整PosMap内的对应PositionSlice
+			RealizedProfit, Comm, UnRealizedProfit := 0.0, 0.0, 0.0
+			if _, ok := FA.PosMap[FO.InstID]; ok {
+				RealizedProfit, Comm, UnRealizedProfit = FA.PosMap[FO.InstID].UpdateWithOrder(FO)
+			} else {
+				FA.PosMap[FO.InstID] = NewPosSlice() //&PositionSlice{} //{UdTime: FO.OrderTime}
+				RealizedProfit, Comm, UnRealizedProfit = FA.PosMap[FO.InstID].UpdateWithOrder(FO)
+			}
+			// 3.修正 AllProfit
+			FA.AllProfit += RealizedProfit
+			// 4.修正 AllCommission
+			FA.AllCommission += Comm
+			// 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
+			// 5.修正 MktVal
+			FA.BmkVal += RealizedProfit - Comm
+			FA.MktVal = FA.BmkVal + UnRealizedProfit
+			// 6.修正 Fundavail
+			FA.Fundavail = FA.BmkVal - FA.Margin()
+			// 8.不修正字段 MarketValueSlice
 		}
-		// 3.修正 AllProfit
-		FA.AllProfit += RealizedProfit
-		// 4.修正 AllCommission
-		FA.AllCommission += Comm
-		// 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
-		// 5.修正 MktVal
-		FA.BmkVal += RealizedProfit - Comm
-		FA.MktVal = FA.BmkVal + UnRealizedProfit
-		// 6.修正 Fundavail
-		FA.Fundavail = FA.BmkVal - FA.Margin()
-		// 8.不修正字段 MarketValueSlice
 	}
-
 }
 
 // 针对数据反应

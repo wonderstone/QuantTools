@@ -3,10 +3,8 @@ package dataprocessor
 //  this edition is based on rwmutex and map
 
 import (
-	// "sync"
 	"errors"
 	"time"
-	//"github.com/wonderstone/QuantTools/data/marketdata"
 )
 
 // stock and futures market data element to send at some specific timestamp for some target
@@ -66,9 +64,6 @@ type BarCM struct {
 	BarCMap       map[string]*BarC              //datetime as key
 	BarCMapkeydts []string                      //datetime key slice for iteration
 	FMTMDataMap   map[string]map[string]float64 // key: datetime, value: map[instrID]MTMprice
-	// add a sync.RWMutex to protect the BarCM
-	// in case some idiot code changes the data
-	// sync.RWMutex
 }
 
 func NewBarCM(instSIDS []string, IndiSNames []string, instFIDS []string, IndiFNames []string, beginDate string, endDate string) *BarCM {

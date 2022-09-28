@@ -20,7 +20,7 @@ func TestPositionDetail(t *testing.T) {
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 
-	so := order.NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
+	so := order.NewStockOrder(instID, true,false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
 	// new 1 positiondetail from stockorder
 	pd := NewPositionDetail(&so)
 	// test

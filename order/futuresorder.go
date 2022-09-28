@@ -22,6 +22,7 @@ import (
 
 type FuturesOrder struct {
 	InstID         string
+	IsEligible     bool
 	IsExecuted     bool
 	OrderTime      string
 	OrderPrice     float64
@@ -32,7 +33,7 @@ type FuturesOrder struct {
 }
 
 // func NewFuturesOrder(instID string, isexecuted bool, ordertime string, orderprice float64, ordernum float64, orderdir OrderDir, ordertype FuturesOrderTYP, pfcp *cp.FCP) FuturesOrder {
-func NewFuturesOrder(instID string, isexecuted bool, ordertime string, orderprice float64, ordernum float64, orderdir string, ordertype string, pfcp *cp.FCP) FuturesOrder {
+func NewFuturesOrder(instID string, iseligible bool, isexecuted bool, ordertime string, orderprice float64, ordernum float64, orderdir string, ordertype string, pfcp *cp.FCP) FuturesOrder {
 	if orderprice <= 0 {
 		panic("下单价格小于0 检查策略模块或相关数据")
 	}
@@ -41,6 +42,7 @@ func NewFuturesOrder(instID string, isexecuted bool, ordertime string, orderpric
 	}
 	return FuturesOrder{
 		InstID:         instID,
+		IsEligible:     iseligible,
 		IsExecuted:     isexecuted,
 		OrderTime:      ordertime,
 		OrderPrice:     orderprice,

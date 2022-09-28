@@ -121,10 +121,16 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 						// if vAcct.SAcct.PosMap[instID].CalEquity() == 0 {
 						// 	orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, order.Buy, &tmpSCP))
 						// }
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
-
+						tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP)
+						if tmporder.IsEligible {
+							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
+						}
 					} else {
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
+						// I know! it's for you to do sth more meaningful
+						tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP)
+						if tmporder.IsEligible {
+							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
+						}
 					}
 					// this part is for test only
 					log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
@@ -136,7 +142,8 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 					//check if target is in the vAcct.SAcct, if yes, sell them all if not, do nothing
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
+							tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
+							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
 						}
 					}
 
@@ -176,31 +183,31 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 				if tmpf[0] >= 0 {
 					// 清仓今日昨日空头持仓
 					if tdynums > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], tdynums, "Buy", "CloseToday", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], tdynums, "Buy", "CloseToday", &tmpFCP))
 					}
 					if prevnums > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], prevnums, "Buy", "ClosePrevious", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], prevnums, "Buy", "ClosePrevious", &tmpFCP))
 					}
 					// 这里应该有一个期货账户资金使用率的控制  一个比例
 					// moneyoneachf := vAcct.FAcct.MktVal / float64(len(ss.FInstNames))
 					// tmpnum := math.Floor(moneyoneachf * ss.FuturesFundUseRate / FBDE.FBarData.Close / CPMap.FuturesPropMap[instrID].ContractSize / (CPMap.FuturesPropMap[instrID].MarginLong + CPMap.FuturesPropMap[instrID].MarginBroker))
 
-					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Buy", "Open", &tmpFCP))
+					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Buy", "Open", &tmpFCP))
 
 				}
 
 				if tmpf[0] < 0 {
 					if tdynuml > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], tdynuml, "Sell", "CloseToday", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], tdynuml, "Sell", "CloseToday", &tmpFCP))
 					}
 					if prevnuml > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], prevnuml, "Sell", "ClosePrevious", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], prevnuml, "Sell", "ClosePrevious", &tmpFCP))
 					}
 					// 这里应该有一个期货账户资金使用率的控制  一个比例
 					// moneyoneachf := vAcct.FAcct.MktVal / float64(len(ss.FInstNames))
 					// tmpnum := math.Floor(moneyoneachf * ss.FuturesFundUseRate / FBDE.FBarData.Close / CPMap.FuturesPropMap[instrID].ContractSize / (CPMap.FuturesPropMap[instrID].MarginShort + CPMap.FuturesPropMap[instrID].MarginBroker))
 
-					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Sell", "Open", &tmpFCP))
+					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Sell", "Open", &tmpFCP))
 				}
 			}
 		}
@@ -243,10 +250,10 @@ func (ss SimpleStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, v
 						// if vAcct.SAcct.PosMap[instID].CalEquity() == 0 {
 						// 	orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, order.Buy, &tmpSCP))
 						// }
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
 
 					} else {
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
 					}
 					// this part is for test only
 					log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
@@ -258,7 +265,7 @@ func (ss SimpleStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, v
 					//check if target is in the vAcct.SAcct, if yes, sell them all if not, do nothing
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
+							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
 						}
 					}
 
@@ -298,30 +305,30 @@ func (ss SimpleStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, v
 				if FBDE.IndiDataMap["close"]-FBDE.IndiDataMap["open"] >= 0 {
 					// 清仓今日昨日空头持仓
 					if tdynums > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], tdynums, "Buy", "CloseToday", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], tdynums, "Buy", "CloseToday", &tmpFCP))
 					}
 					if prevnums > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], prevnums, "Buy", "ClosePrevious", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], prevnums, "Buy", "ClosePrevious", &tmpFCP))
 					}
 					// 这里应该有一个期货账户资金使用率的控制  一个比例
 					// moneyoneachf := vAcct.FAcct.MktVal / float64(len(ss.FInstNames))
 					// tmpnum := math.Floor(moneyoneachf * ss.FuturesFundUseRate / FBDE.FBarData.Close / CPMap.FuturesPropMap[instrID].ContractSize / (CPMap.FuturesPropMap[instrID].MarginLong + CPMap.FuturesPropMap[instrID].MarginBroker))
 
-					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Buy", "Open", &tmpFCP))
+					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Buy", "Open", &tmpFCP))
 				}
 
 				if FBDE.IndiDataMap["close"]-FBDE.IndiDataMap["open"] < 0 {
 					if tdynuml > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], tdynuml, "Sell", "CloseToday", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], tdynuml, "Sell", "CloseToday", &tmpFCP))
 					}
 					if prevnuml > 0 {
-						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], prevnuml, "Sell", "ClosePrevious", &tmpFCP))
+						orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], prevnuml, "Sell", "ClosePrevious", &tmpFCP))
 					}
 					// 这里应该有一个期货账户资金使用率的控制  一个比例
 					// moneyoneachf := vAcct.FAcct.MktVal / float64(len(ss.FInstNames))
 					// tmpnum := math.Floor(moneyoneachf * ss.FuturesFundUseRate / FBDE.FBarData.Close / CPMap.FuturesPropMap[instrID].ContractSize / (CPMap.FuturesPropMap[instrID].MarginShort + CPMap.FuturesPropMap[instrID].MarginBroker))
 
-					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Sell", "Open", &tmpFCP))
+					orderRes.FuturesOrderS = append(orderRes.FuturesOrderS, order.NewFuturesOrder(instrID, false, false, datetime, FBDE.IndiDataMap["Close"], ss.FNum, "Sell", "Open", &tmpFCP))
 				}
 			}
 		}

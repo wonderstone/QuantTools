@@ -30,7 +30,7 @@ datafields:
         - vol
         - ma1
     sinstrnames:
-        - SZ002673
+        - sz002673
 matcherparam:
     matcherslippage4f: 1
     matcherslippage4s: 0.01
@@ -54,7 +54,7 @@ va:
         marketvalueslice:
             - time: 2017/10/9 9:39
               mktval: 200000
-        uuid: 0ae2db9a-cc9c-413a-a032-3b9d561f69d9
+        uuid: 6b4e1698-dfca-4c3d-9980-3e3926050408
     facct:
         inittime: 2017/10/9 9:39
         udtime: 2017/10/9 9:39
@@ -67,4 +67,4 @@ va:
         marketvalueslice:
             - time: 2017/10/9 9:39
               mktval: 100000
-        uuid: 3771cf9e-baa6-4a33-ac2f-7b81cbc5cabf
+        uuid: ce1cdcb3-eb3e-418c-beea-b8c61f3ff867

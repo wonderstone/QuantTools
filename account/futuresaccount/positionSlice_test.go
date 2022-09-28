@@ -13,7 +13,7 @@ import (
 // add closenum > pos num scenario
 func TestPositionSlice(t *testing.T) {
 	fcp := cp.NewFCP(1000, 0.02, 10, 10, 0.0, false, 2.0, 0.0, 2.0, 0.01)
-	fo := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
+	fo := order.NewFuturesOrder("au2210", true, true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
 	pd := NewPositionDetail(&fo)
 	ps := NewPosSlice()
 
@@ -22,21 +22,21 @@ func TestPositionSlice(t *testing.T) {
 	assert.Equal(t, expected, ps.PosTdys[0], "NewPositionSlice不符合预期")
 
 	// add one more buy position
-	fo2 := order.NewFuturesOrder("au2210", true, "20220515 14:35:27 500", 410.00, 2, "Buy", "Open", &fcp)
+	fo2 := order.NewFuturesOrder("au2210", true, true, "20220515 14:35:27 500", 410.00, 2, "Buy", "Open", &fcp)
 	pd2 := NewPositionDetail(&fo2)
 	ps.UpdateWithOrder(&fo2)
 	expected2 := pd2
 	assert.Equal(t, expected2, ps.PosTdys[1], "NewPositionSlice不符合预期")
 
 	// add one more sell position
-	fo3 := order.NewFuturesOrder("au2210", true, "20220515 15:35:27 500", 420.00, 2, "Sell", "Open", &fcp)
+	fo3 := order.NewFuturesOrder("au2210", true, true, "20220515 15:35:27 500", 420.00, 2, "Sell", "Open", &fcp)
 	pd3 := NewPositionDetail(&fo3)
 	ps.UpdateWithOrder(&fo3)
 	expected3 := pd3
 	assert.Equal(t, expected3, ps.PosTdys[2], "NewPositionSlice不符合预期")
 
 	// close one buy position
-	fo4 := order.NewFuturesOrder("au2210", true, "20220515 16:35:27 500", 430.00, 4, "Sell", "CloseToday", &fcp)
+	fo4 := order.NewFuturesOrder("au2210", true, true, "20220515 16:35:27 500", 430.00, 4, "Sell", "CloseToday", &fcp)
 
 	RealizedProfit, Comm, UnRealizedProfit := ps.UpdateWithOrder(&fo4)
 	PosTdyNumL, PosTdyNumS := ps.CalPosTdyNum()
@@ -51,7 +51,7 @@ func TestPositionSlice(t *testing.T) {
 // test UpdateWithUMI
 func TestUpdateWithUMI(t *testing.T) {
 	fcp := cp.NewFCP(1000, 0.02, 10, 10, 0.0, false, 2.0, 0.0, 2.0, 0.01)
-	fo := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
+	fo := order.NewFuturesOrder("au2210", true, true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
 	pd := NewPositionDetail(&fo)
 	ps := NewPosSlice()
 
@@ -67,7 +67,7 @@ func TestUpdateWithUMI(t *testing.T) {
 // test UpdateWithMTM
 func TestUpdateWithMTM(t *testing.T) {
 	fcp := cp.NewFCP(1000, 0.02, 10, 10, 0.0, false, 2.0, 0.0, 2.0, 0.01)
-	fo := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
+	fo := order.NewFuturesOrder("au2210", true, true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
 	pd := NewPositionDetail(&fo)
 	ps := NewPosSlice()
 

@@ -19,8 +19,9 @@ func TestNewStockOrder(t *testing.T) {
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 
 	// so := NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, Buy, &scp)
-	so := NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
+	so := NewStockOrder(instID, true, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
 	assert.Equal(t, instID, so.InstID, "instID should be equal")
+	assert.Equal(t, true, so.IsEligible, "IsEligible should be equal")
 	assert.Equal(t, false, so.IsExecuted, "isexecuted should be equal")
 	assert.Equal(t, "2022-05-10 14:52", so.OrderTime, "ordertime should be equal")
 	assert.Equal(t, 8.5, so.OrderPrice, "orderprice should be equal")
@@ -40,6 +41,6 @@ func TestCalEquity(t *testing.T) {
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 
 	// so := NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, Buy, &scp)
-	so := NewStockOrder(instID, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
+	so := NewStockOrder(instID, true, false, "2022-05-10 14:52", 8.5, 2.0, "Buy", &scp)
 	assert.Equal(t, 1717.0, so.CalEquity(), fmt.Sprintf("so.CalEquity() should be 1717.0, but %v", so.CalEquity()))
 }

@@ -12,7 +12,7 @@ import (
 // test NewPositionDetail
 func TestNewPositionDetail(t *testing.T) {
 	fcp := cp.NewFCP(1000, 0.02, 10, 10, 0.0, false, 2.0, 0.0, 2.0, 0.01)
-	fo := order.NewFuturesOrder("au2210", true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
+	fo := order.NewFuturesOrder("au2210",true, true, "20220515 13:35:27 500", 400.00, 2, "Buy", "Open", &fcp)
 
 	pd := NewPositionDetail(&fo)
 

@@ -129,43 +129,58 @@ func (SA *StockAccount) Equity() (Equity float64) {
 	return
 }
 
+// Eligible check for order
+func (SA *StockAccount) CheckEligible(o *order.StockOrder) {
+	switch o.OrderDirection {
+	case "Buy":
+		if o.CalEquity() <= SA.Fundavail {
+			o.IsEligible = true
+		}
+	case "Sell":
+		// check o.InstID is in SA.PosMap
+		if _, ok := SA.PosMap[o.InstID]; ok {
+			// check the previous position is enough
+			if o.OrderNum <= SA.PosMap[o.InstID].CalPosPrevNum() {
+				o.IsEligible = true
+			}
+		}
+	}
+}
+
 // 针对order产生反应
 func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
-	if !SO.IsExecuted {
-		panic("确保order实例经过matcher撮合")
-	}
-	if SA.Fundavail <= SO.CalEquity() {
-		// panic("确保账户足够资金")
-	} else {
-		// in principle, backtest should be done under one mutex lock
-		// insurance: add a mutex for stock account write
-		// SA.Lock()
-		// defer 后进先出
-		// defer SA.Unlock()
-		// 1. 不修正初始化时间字段
-		// 2. 修正刷新时间
-		SA.UdTime = SO.OrderTime
-		// 7. 调整PosMap内的对应PositionSlice
-		RealizedProfit, Comm, Equity := 0.0, 0.0, 0.0
-		if _, ok := SA.PosMap[SO.InstID]; ok {
-			RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
+	if SO.IsExecuted {
+		if SA.Fundavail <= SO.CalEquity() {
+			// panic("确保账户足够资金")
 		} else {
-			SA.PosMap[SO.InstID] = NewPosSlice() //&PositionSlice{} //{UdTime: FO.OrderTime}
-			RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
+			// in principle, backtest should be done under one mutex lock
+			// insurance: add a mutex for stock account write
+			// SA.Lock()
+			// defer 后进先出
+			// defer SA.Unlock()
+			// 1. 不修正初始化时间字段
+			// 2. 修正刷新时间
+			SA.UdTime = SO.OrderTime
+			// 7. 调整PosMap内的对应PositionSlice
+			RealizedProfit, Comm, Equity := 0.0, 0.0, 0.0
+			if _, ok := SA.PosMap[SO.InstID]; ok {
+				RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
+			} else {
+				SA.PosMap[SO.InstID] = NewPosSlice() //&PositionSlice{} //{UdTime: FO.OrderTime}
+				RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
+			}
+			// 3.修正 AllProfit
+			SA.AllProfit += RealizedProfit
+			// 4.修正 AllCommission
+			SA.AllCommission += Comm
+			// 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
+			// 5.修正 Fundavail
+			SA.Fundavail += RealizedProfit - Comm - Equity
+			// 6.修正 MktVal
+			SA.MktVal = SA.Fundavail + SA.Equity()
+			// 8.不修正字段 MarketValueSlice
 		}
-		// 3.修正 AllProfit
-		SA.AllProfit += RealizedProfit
-		// 4.修正 AllCommission
-		SA.AllCommission += Comm
-		// 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
-		// 5.修正 Fundavail
-		SA.Fundavail += RealizedProfit - Comm - Equity
-		// 6.修正 MktVal
-		SA.MktVal = SA.Fundavail + SA.Equity()
-		// 8.不修正字段 MarketValueSlice
-
 	}
-
 }
 
 // 针对数据反应

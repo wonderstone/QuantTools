@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
-	"time"
+	// "fmt"
+	// "time"
 
 	// "fmt"
 	"os"
@@ -11,9 +11,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
-	"github.com/wonderstone/QuantTools/dataprocessor"
+	// "github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/framework"
-	"github.com/wonderstone/QuantTools/realinfo"
+	// "github.com/wonderstone/QuantTools/realinfo"
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
 
@@ -45,6 +45,7 @@ func main() {
 	pstg := m.STG
 	// new virtual account
 	va := virtualaccount.NewVirtualAccount(m.BT.BeginDate, m.BT.StockInitValue, m.BT.FuturesInitValue)
+	log.Info().Str("Account UUID", va.SAcct.UUID).Float64("AccountVal", va.SAcct.MktVal).Msg("Virtual Account Created!")
 	m.BT.IterData(&va, m.BT.BCM, pstg, m.BT.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 	file, err := os.Create("./records.csv")
 	if err != nil {
@@ -63,28 +64,28 @@ func main() {
 
 	// realtime job part
 
-	// 1.0 从realtime.yaml中读取数据信息
-	configdir := "./"
-	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
-	info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
+	// // 1.0 从realtime.yaml中读取数据信息
+	// configdir := "./"
+	// vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
+	// info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
 
-	rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
-	fmt.Println(rt)
+	// rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
+	// fmt.Println(rt)
 
-	// build a barc channel
-	ch := make(chan *dataprocessor.BarC)
-	// pretend that you finished the data subscribe process, and send data to channel
-	go func() {
-		for _, dts := range m.BT.BCM.BarCMapkeydts {
-			ch <- m.BT.BCM.BarCMap[dts]
-			// delay for 0.1 second
-			time.Sleep(100 * time.Millisecond)
+	// // build a barc channel
+	// ch := make(chan *dataprocessor.BarC)
+	// // pretend that you finished the data subscribe process, and send data to channel
+	// go func() {
+	// 	for _, dts := range m.BT.BCM.BarCMapkeydts {
+	// 		ch <- m.BT.BCM.BarCMap[dts]
+	// 		// delay for 0.1 second
+	// 		time.Sleep(100 * time.Millisecond)
 
-		}
-		// close the channel
-		close(ch)
-	}()
-	rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
-	//
+	// 	}
+	// 	// close the channel
+	// 	close(ch)
+	// }()
+	// rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	// //
 
 }

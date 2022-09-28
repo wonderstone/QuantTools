@@ -23,36 +23,34 @@ func NewSimpleMatcher(slpg4s float64, slpg4f float64) SimpleMatcher {
 
 // 模拟撮合进行不利方向的价格调整，matchprice的选择建议使用下一个bar的开盘价matchtime使用下一个bar的时间戳
 func (m *SimpleMatcher) MatchFuturesOrder(FO *order.FuturesOrder, matchprice float64, matchtime string) {
-	// in principle, backtest should be done under one mutex lock
-	// insurance: add a mutex for matchfuturesorder
 	// num4ticksize for how many ticksizes to adjust
-
-	switch FO.OrderDirection {
-	case "Buy":
-		FO.OrderPrice = matchprice + m.Slippage4F*FO.TickSize
-	case "Sell":
-		FO.OrderPrice = matchprice - m.Slippage4F*FO.TickSize
-	default:
-		panic("OrderDirection Error")
+	if FO.IsEligible {
+		switch FO.OrderDirection {
+		case "Buy":
+			FO.OrderPrice = matchprice + m.Slippage4F*FO.TickSize
+		case "Sell":
+			FO.OrderPrice = matchprice - m.Slippage4F*FO.TickSize
+		default:
+			panic("OrderDirection Error")
+		}
+		FO.OrderTime = matchtime
+		FO.IsExecuted = true
 	}
-	FO.OrderTime = matchtime
-	FO.IsExecuted = true
+
 }
 
 // 模拟撮合进行不利方向的价格调整，matchprice的选择建议使用下一个bar的开盘价matchtime使用下一个bar的时间戳
 func (m *SimpleMatcher) MatchStockOrder(SO *order.StockOrder, matchprice float64, matchtime string) {
-	// in principle, backtest should be done under one mutex lock
-	// insurance: add a mutex for matchstockorder
-	// m.Lock()
-	switch SO.OrderDirection {
-	case "Buy":
-		SO.OrderPrice = matchprice + m.Slippage4S
-	case "Sell":
-		SO.OrderPrice = matchprice - m.Slippage4S
-	default:
-		panic("OrderDirection Error")
+	if SO.IsEligible {
+		switch SO.OrderDirection {
+		case "Buy":
+			SO.OrderPrice = matchprice + m.Slippage4S
+		case "Sell":
+			SO.OrderPrice = matchprice - m.Slippage4S
+		default:
+			panic("OrderDirection Error")
+		}
+		SO.OrderTime = matchtime
+		SO.IsExecuted = true
 	}
-	SO.OrderTime = matchtime
-	SO.IsExecuted = true
-	// m.Unlock()
 }
