@@ -8,23 +8,23 @@ import (
 // MA is the moving average indicator
 type MA struct {
 	period int
-	queue  *cb.Queue
+	DQ     *cb.Queue
 }
 
 // NewMA returns a new MA indicator
 func NewMA(period int) *MA {
 	return &MA{
 		period: period,
-		queue:  cb.New(period),
+		DQ:     cb.New(period),
 	}
 }
 
 // Eval evaluates the indicator
 func (m *MA) Eval() float64 {
 	var sum float64
-	for _, v := range m.queue.Values() {
+	for _, v := range m.DQ.Values() {
 
 		sum += v.(float64)
 	}
-	return sum / float64(m.queue.Size())
+	return sum / float64(m.DQ.Size())
 }
