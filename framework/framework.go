@@ -423,7 +423,7 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 						Msg("Data")
 					// if instID is in PosMap then log
 					if _, ok := VAcct.SAcct.PosMap[instID]; ok {
-						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
+						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Str("target", instID).
 							Float64("positdy", VAcct.SAcct.PosMap[instID].CalPosTdyNum()).
 							Float64("posipre", VAcct.SAcct.PosMap[instID].CalPosPrevNum()).
 							Float64("Equity", VAcct.SAcct.PosMap[instID].CalEquity()).
@@ -545,7 +545,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 						Msg("Data")
 					// if instID is in PosMap then log
 					if _, ok := RT.VA.SAcct.PosMap[instID]; ok {
-						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).
+						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Str("target", instID).
 							Float64("positdy", RT.VA.SAcct.PosMap[instID].CalPosTdyNum()).
 							Float64("posipre", RT.VA.SAcct.PosMap[instID].CalPosPrevNum()).
 							Float64("Equity", RT.VA.SAcct.PosMap[instID].CalEquity()).

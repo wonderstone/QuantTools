@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	"github.com/wonderstone/QuantTools/dataprocessor"
-	"github.com/wonderstone/QuantTools/indicator"
 	"github.com/wonderstone/QuantTools/realinfo"
 
 	// "github.com/wonderstone/QuantTools/dataprocessor"
@@ -81,27 +80,9 @@ func main() {
 
 	// build a barc channel
 	ch := make(chan *dataprocessor.BarC)
-	// build a ma2 indicatormap and load some data into the ma2 indicator
-	ma2map := make(map[string]*indicator.MA)
-	// iter the target stock list
-	for _, stock := range rt.SInstrNames {
-		ma2map[stock] = indicator.NewMA(2)
-		ma2map[stock].DQ.Enqueue(1.0)
-		ma2map[stock].DQ.Enqueue(2.0)
-	}
-	// be serious you jackass!!!
-
 	// pretend that you finished the data subscribe process, and send data to channel
 	go func() {
 		for _, dts := range m.BT.BCM.BarCMapkeydts {
-			// add a indicator to the m.BT.BCM.BarCMap[dts]
-			for key, value := range m.BT.BCM.BarCMap[dts].Stockdata {
-				ma2map[key].DQ.Enqueue(value.IndiDataMap["close"])
-				m.BT.BCM.BarCMap[dts].Stockdata[key].IndiDataMap["ma2_m"] = ma2map[key].Eval()
-			}
-			for k, v := range m.BT.BCM.BarCMap[dts].Stockdata {
-				fmt.Println(k, v.IndiDataMap["ma2_m"])
-			}
 			ch <- m.BT.BCM.BarCMap[dts]
 			// delay for 0.1 second
 			time.Sleep(100 * time.Millisecond)
@@ -111,7 +92,5 @@ func main() {
 		close(ch)
 	}()
 	rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
-
-	// 此处开始为针对性的测试输出部分
 
 }
