@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	// "fmt"
-	// "time"
-
-	// "fmt"
 	"os"
 	"strconv"
 
@@ -18,21 +14,19 @@ import (
 	"github.com/wonderstone/QuantTools/indicator"
 	"github.com/wonderstone/QuantTools/realinfo"
 
-	// "github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/framework"
-	// "github.com/wonderstone/QuantTools/realinfo"
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
 
-// declare the manager struct used for aggregating the backtest and strategy module
-// backtest has the parameters and the market data
-// strategy interface relates to the strategy module
+// * declare the manager struct used for aggregating the backtest and strategy module
+// * backtest has the parameters and the market data
+// * strategy interface relates to the strategy module
 type manager struct {
-	BT  *framework.BackTest      // BackTest framework component
-	STG strategyModule.IStrategy // 在一个BackTest framework下  有多个策略实例，每个策略实例都对应着不一样的GEP表达式
+	BT  *framework.BackTest
+	STG strategyModule.IStrategy
 }
 
-// NewManager creates a new manager instance
+// * Normally NewManager from Config file
 func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 	BT := framework.NewBackTestConfig(secBT, dir)
 	STG := BT.GetStrategy(secSTG, dir, "simple")
@@ -43,35 +37,46 @@ func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 }
 
 func main() {
-	// create a manager instance:
+	// * **********************This part is for the Backtesting!**********************
+	// * New a manager instance:
 	m := NewManagerfromConfig("Default", "Default", "./config/Manual")
-	// manager prepares the market data
+	// todo: download the data to tmpdata dir first no matter what the data source is
+	// // pretend the data has been downloaded already
+	// * manager prepares the market data
 	m.BT.PrepareData()
+	// ? this is log part! Market Data has been prepared!
 	log.Info().Msg("Data Prepared!")
-	// new a strategy from backtest
+	// * new a strategy from backtest
 	pstg := m.STG
-	// new virtual account
+	// * new a virtual account
+	// ! be careful about the futures part
 	va := virtualaccount.NewVirtualAccount(m.BT.BeginDate, m.BT.StockInitValue, m.BT.FuturesInitValue)
+	// ? this is log part! Virtual Account Created!
 	log.Info().Str("Account UUID", va.SAcct.UUID).Float64("AccountVal", va.SAcct.MktVal).Msg("Virtual Account Created!")
+	// * Iterate the Market data for backtest!
 	m.BT.IterData(&va, m.BT.BCM, pstg, m.BT.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	// * Get the result from virtual stock account and write to the records.csv file
 	file, err := os.Create("./records.csv")
 	if err != nil {
+		// ? this is log part! Error when creating the records.csv file
 		log.Fatal().Msg(err.Error())
 	}
 	defer file.Close()
 	w := csv.NewWriter(file)
 	defer w.Flush()
-	// Using Write
+	// ** Using Write
 	for _, record := range va.SAcct.MarketValueSlice {
 		row := []string{record.Time, strconv.FormatFloat(record.MktVal, 'f', 2, 64)}
 		if err := w.Write(row); err != nil {
+			// ? this is log part! Error when writing the records.csv file
 			log.Fatal().Msg(err.Error())
 		}
 	}
+	// * **********************   The end for the Backtesting!   **********************
+	// 注意 这是个偷懒的做法  原则上请只包含一个回测或实盘任务
+	// * **********************This part is for the Realtime job!**********************
 
-	// realtime job part
-
-	// 1.0 从realtime.yaml中读取数据信息
+	// * 1.0 从realtime.yaml中读取数据信息
 	configdir := "./"
 	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
 	info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
@@ -79,26 +84,27 @@ func main() {
 	rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
 	fmt.Println(rt)
 
-	// build a barc channel
+	// * build a barc channel
 	ch := make(chan *dataprocessor.BarC)
-	// build a ma2 indicatormap and load some data into the ma2 indicator
+	// * for instance: build a ma2 indicatormap and load some data into the ma2 indicator
 	ma2map := make(map[string]*indicator.MA)
-	// iter the target stock list
+	// ** iter the target list
 	for _, stock := range rt.SInstrNames {
 		ma2map[stock] = indicator.NewMA(2)
 		ma2map[stock].DQ.Enqueue(1.0)
 		ma2map[stock].DQ.Enqueue(2.0)
 	}
-	// be serious you jackass!!!
+	// //be serious you jackass!!!
 
-	// pretend that you finished the data subscribe process, and send data to channel
+	// * pretend that you finished the data subscribe process, and send data to channel
 	go func() {
 		for _, dts := range m.BT.BCM.BarCMapkeydts {
-			// add a indicator to the m.BT.BCM.BarCMap[dts]
+			// ** add an indicator to the m.BT.BCM.BarCMap[dts]
 			for key, value := range m.BT.BCM.BarCMap[dts].Stockdata {
 				ma2map[key].DQ.Enqueue(value.IndiDataMap["close"])
 				m.BT.BCM.BarCMap[dts].Stockdata[key].IndiDataMap["ma2_m"] = ma2map[key].Eval()
 			}
+			// peek the data, do delete when the test is done
 			for k, v := range m.BT.BCM.BarCMap[dts].Stockdata {
 				fmt.Println(k, v.IndiDataMap["ma2_m"])
 			}
@@ -107,11 +113,14 @@ func main() {
 			time.Sleep(100 * time.Millisecond)
 
 		}
-		// close the channel
+		// * close the channel
 		close(ch)
 	}()
+
+	// * 2.0 strategy receives the data from channel and do the realtime job!!!
+	// ! be sure you add the code to connect the broker transaction server
 	rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 
-	// 此处开始为针对性的测试输出部分
+	// * **********************   The end for the Realtime job!   **********************
 
 }

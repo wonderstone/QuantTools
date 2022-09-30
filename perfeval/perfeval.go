@@ -10,7 +10,7 @@ import (
 )
 
 type PerfEval struct {
-	MktValSlice []account.MktValDataType //有机会换一下指针试试性能是否提升
+	MktValSlice []account.MktValDataType
 	sorted      bool
 }
 

@@ -500,6 +500,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
 					tmpOrderRes.IsExecuted = true
 					RT.VA.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
+
 					// this part is for test only
 					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).Msg("Stock Order Executed")
 
@@ -507,6 +508,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 
 			}
 		}
+
 		for i := range tmpOrderRes.FuturesOrderS {
 			// 验证数据是否存在,存在时才撮合
 			if matchinfo, isOk := data.Futuresdata[tmpOrderRes.FuturesOrderS[i].InstID]; isOk {

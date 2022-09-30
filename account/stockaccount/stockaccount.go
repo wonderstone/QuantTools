@@ -10,7 +10,7 @@ import (
 )
 
 type StockAccount struct {
-	//共8个字段  其中  数值类型6个  真实账户核心字段仅保留MktVal、FundAvail
+	// * 共8个字段  其中  数值类型6个  真实账户核心字段仅保留MktVal、FundAvail
 	InitTime         string
 	UdTime           string  // update everytime
 	MktVal           float64 // 权益 最终采用MktVal
@@ -19,7 +19,7 @@ type StockAccount struct {
 	AllCommission    float64                   // 单独标记
 	PosMap           map[string]*PositionSlice //用指针版本
 	MarketValueSlice []account.MktValDataType
-	// add one tmp UUID field for log testing
+	// todo： add one tmp UUID field for log testing
 	UUID string
 }
 
@@ -151,17 +151,14 @@ func (SA *StockAccount) CheckEligible(o *order.StockOrder) {
 func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
 	if SO.IsExecuted {
 		if SA.Fundavail <= SO.CalEquity() {
-			// panic("确保账户足够资金")
+			// * panic("确保账户足够资金")
 		} else {
-			// in principle, backtest should be done under one mutex lock
-			// insurance: add a mutex for stock account write
-			// SA.Lock()
-			// defer 后进先出
-			// defer SA.Unlock()
-			// 1. 不修正初始化时间字段
-			// 2. 修正刷新时间
+			// * in principle, backtest should be done under one mutex lock
+			// * insurance: add a mutex for stock account write
+			// * 1. 不修正初始化时间字段
+			// * 2. 修正刷新时间
 			SA.UdTime = SO.OrderTime
-			// 7. 调整PosMap内的对应PositionSlice
+			// * 7. 调整PosMap内的对应PositionSlice
 			RealizedProfit, Comm, Equity := 0.0, 0.0, 0.0
 			if _, ok := SA.PosMap[SO.InstID]; ok {
 				RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
@@ -169,62 +166,52 @@ func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
 				SA.PosMap[SO.InstID] = NewPosSlice() //&PositionSlice{} //{UdTime: FO.OrderTime}
 				RealizedProfit, Comm, Equity = SA.PosMap[SO.InstID].UpdateWithOrder(SO)
 			}
-			// 3.修正 AllProfit
+			// * 3.修正 AllProfit
 			SA.AllProfit += RealizedProfit
-			// 4.修正 AllCommission
+			// * 4.修正 AllCommission
 			SA.AllCommission += Comm
-			// 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
-			// 5.修正 Fundavail
+			// * 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
+			// * 5.修正 Fundavail
 			SA.Fundavail += RealizedProfit - Comm - Equity
-			// 6.修正 MktVal
+			// * 6.修正 MktVal
 			SA.MktVal = SA.Fundavail + SA.Equity()
-			// 8.不修正字段 MarketValueSlice
+			// * 8.不修正字段 MarketValueSlice
 		}
 	}
 }
 
 // 针对数据反应
 func (SA *StockAccount) ActOnUpdateMI(UpdateTimeStamp string, InstID string, Value float64) {
-	// in principle, backtest should be done under one mutex lock
-	// insurance: add a mutex for stock account write
-	// SA.Lock()
-	// defer 后进先出
-	// defer SA.Unlock()
-	// 1. 不修正初始化时间字段
-	// 2. 修正刷新时间
+	// * 1. 不修正初始化时间字段
+	// * 2. 修正刷新时间
 	SA.UdTime = UpdateTimeStamp
-	// 3.不修正 AllProfit
-	// 4.不修正 AllCommission
+	// * 3.不修正 AllProfit
+	// * 4.不修正 AllCommission
 
-	// 6.不修正 Fundavail
-	// 7. 调整PosMap内的对应PositionSlice
+	// * 6.不修正 Fundavail
+	// * 7. 调整PosMap内的对应PositionSlice
 	if _, ok := SA.PosMap[InstID]; ok {
 		// 更新pd内lastprice数值
 		SA.PosMap[InstID].UpdateWithUMI(UpdateTimeStamp, Value)
 	}
-	// 5.修正 MktVal
+	// * 5.修正 MktVal
 	SA.MktVal = SA.Fundavail + SA.Equity()
-	// 8.不修正字段 MarketValueSlice
+	// * 8.不修正字段 MarketValueSlice
 }
 
 // CloseMarket 在账户层面实施
 func (SA *StockAccount) ActOnCM() {
-	// in principle, backtest should be done under one mutex lock
-	// insurance: add a mutex for stock account write
-	// SA.Lock()
-	// defer 后进先出
-	// defer SA.Unlock()
-	// 1. 不修正初始化时间字段
-	// 2. 不修正刷新时间
-	// 3.不修正 AllProfit
-	// 4.不修正 AllCommission
-	// 5.不修正 MktVal
-	// 6.不修正 Fundavail
-	// 7. 调整PosMap内的对应PositionSlice
+	// * 1. 不修正初始化时间字段
+	// * 2. 不修正刷新时间
+	// * 3.不修正 AllProfit
+	// * 4.不修正 AllCommission
+	// * 5.不修正 MktVal
+	// * 6.不修正 Fundavail
+	// * 7. 调整PosMap内的对应PositionSlice
 	for key := range SA.PosMap {
 		SA.PosMap[key].UpdateWithCM()
 	}
-	// 8.修正字段 MarketValueSlice
+	// * 8.修正字段 MarketValueSlice
 	SA.MarketValueSlice = append(SA.MarketValueSlice, account.MktValDataType{Time: SA.UdTime, MktVal: SA.MktVal})
 
 }
