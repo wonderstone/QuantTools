@@ -121,16 +121,12 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 						// if vAcct.SAcct.PosMap[instID].CalEquity() == 0 {
 						// 	orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, order.Buy, &tmpSCP))
 						// }
-						tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP)
-						if tmporder.IsEligible {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
-						}
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
+
 					} else {
 						// I know! it's for you to do sth more meaningful
-						tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP)
-						if tmporder.IsEligible {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
-						}
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, "Buy", &tmpSCP))
+
 					}
 					// this part is for test only
 					log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
@@ -142,8 +138,7 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 					//check if target is in the vAcct.SAcct, if yes, sell them all if not, do nothing
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							tmporder := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
-							orderRes.StockOrderS = append(orderRes.StockOrderS, tmporder)
+							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
 						}
 					}
 
