@@ -12,14 +12,14 @@ import (
 type OrderResult struct {
 	StockOrderS   []order.StockOrder
 	FuturesOrderS []order.FuturesOrder
-	IsExecuted    bool
+	// IsExecuted    bool
 }
 
 func NewOrderResult() OrderResult {
 	return OrderResult{
 		StockOrderS:   make([]order.StockOrder, 0),
 		FuturesOrderS: make([]order.FuturesOrder, 0),
-		IsExecuted:    false,
+		// IsExecuted:    false,
 	}
 }
 

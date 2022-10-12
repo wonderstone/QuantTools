@@ -53,6 +53,7 @@ func SendFO(fos []order.FuturesOrder, info map[string]interface{}) {
 
 }
 
+// + realtime job would use this function
 func getRealTimeStamp() string {
 	// get current time stamp
 	currentTime := time.Now()
