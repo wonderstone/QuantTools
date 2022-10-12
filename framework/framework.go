@@ -18,7 +18,7 @@ import (
 
 	"sort"
 	"strings"
-	"sync"
+	// "sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -65,7 +65,7 @@ type BackTest struct {
 	// fileLogger zerolog.Logger
 
 	// add a sync.RWMutex to make sure BackTest
-	sync.RWMutex
+	// sync.RWMutex
 }
 
 type RealTime struct {
@@ -352,7 +352,8 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 						Msg("Match details")
 					VAcct.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
-					tmpOrderRes.IsExecuted = true
+					//
+					// tmpOrderRes.IsExecuted = true
 					VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
 					// this part is for test only
 					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
@@ -367,7 +368,7 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
 					VAcct.FAcct.CheckEligible(&tmpOrderRes.FuturesOrderS[i])
 					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
-					tmpOrderRes.IsExecuted = true
+					// tmpOrderRes.IsExecuted = true
 					VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
 
 				}
@@ -498,7 +499,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 					// 采用本bar的open价格进行撮合
 					RT.VA.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
-					tmpOrderRes.IsExecuted = true
+					// tmpOrderRes.IsExecuted = true
 					RT.VA.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
 
 					// this part is for test only
@@ -516,7 +517,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 					// 采用本bar的open价格进行撮合
 					RT.VA.FAcct.CheckEligible(&tmpOrderRes.FuturesOrderS[i])
 					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
-					tmpOrderRes.IsExecuted = true
+					// tmpOrderRes.IsExecuted = true
 					RT.VA.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
 					// in case you wanna put some log here!
 				}
