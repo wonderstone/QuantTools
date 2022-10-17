@@ -20,6 +20,9 @@ func NewPosSlice() *PositionSlice {
 
 // 计算PosTdyNum
 func (ps *PositionSlice) CalPosTdyNum() (PosTdyNum float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		PosTdyNum += pd.Num
 	}
@@ -28,6 +31,9 @@ func (ps *PositionSlice) CalPosTdyNum() (PosTdyNum float64) {
 
 // 计算PosPrevNum
 func (ps *PositionSlice) CalPosPrevNum() (PosPrevNum float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosPrevs {
 		PosPrevNum += pd.Num
 	}
@@ -36,6 +42,9 @@ func (ps *PositionSlice) CalPosPrevNum() (PosPrevNum float64) {
 
 // 遍历获得所有Equity汇总
 func (ps *PositionSlice) CalEquity() (Equity float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		Equity += pd.Equity
 	}
@@ -48,6 +57,9 @@ func (ps *PositionSlice) CalEquity() (Equity float64) {
 // CalUnRealizedProfit
 
 func (ps *PositionSlice) CalUnRealizedProfit() (UnRealizedProfit float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		UnRealizedProfit += pd.CalUnRealizedProfit(pd.LastPrice)
 	}

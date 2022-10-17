@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
+	// "fmt"
 	"time"
 
 	"os"
@@ -82,10 +82,12 @@ func main() {
 	info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
 
 	rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
-	fmt.Println(rt)
+	// fmt.Println(rt)
 
 	// * build a barc channel
-	ch := make(chan *dataprocessor.BarC)
+	bch := make(chan *dataprocessor.BarC)
+	// * build a cm channel
+	cmch := make(chan map[string]map[string]float64)
 	// * for instance: build a ma2 indicatormap and load some data into the ma2 indicator
 	ma2map := make(map[string]*indicator.MA)
 	// ** iter the target list
@@ -105,21 +107,21 @@ func main() {
 				m.BT.BCM.BarCMap[dts].Stockdata[key].IndiDataMap["ma2_m"] = ma2map[key].Eval()
 			}
 			// peek the data, do delete when the test is done
-			for k, v := range m.BT.BCM.BarCMap[dts].Stockdata {
-				fmt.Println(k, v.IndiDataMap["ma2_m"])
-			}
-			ch <- m.BT.BCM.BarCMap[dts]
+			// for k, v := range m.BT.BCM.BarCMap[dts].Stockdata {
+			// 	fmt.Println(k, v.IndiDataMap["ma2_m"])
+			// }
+			bch <- m.BT.BCM.BarCMap[dts]
 			// delay for 0.1 second
 			time.Sleep(100 * time.Millisecond)
 
 		}
 		// * close the channel
-		close(ch)
+		close(bch)
 	}()
 
 	// * 2.0 strategy receives the data from channel and do the realtime job!!!
 	// ! be sure you add the code to connect the broker transaction server
-	rt.ActOnRTData(ch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	rt.ActOnRTData(bch, cmch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 
 	// * **********************   The end for the Realtime job!   **********************
 

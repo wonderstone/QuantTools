@@ -473,8 +473,9 @@ func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType, e
 	return PE.CalcPerfEvalResult(einfo)
 }
 
-func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
-
+func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[string]map[string]float64, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
+	// 期货账户开启goroutine 用于接收mc数据 并更新账户
+	go RT.ActOnCM(mc)
 	// 2.0 defer 将va数据更新写入到realtime.yaml中
 	defer exporter.ReplaceVA("../config/Manual", "realtime", *RT.VA)
 
@@ -499,7 +500,6 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 					// 采用本bar的open价格进行撮合
 					RT.VA.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
-					// tmpOrderRes.IsExecuted = true
 					RT.VA.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
 
 					// this part is for test only
@@ -517,7 +517,6 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 					// 采用本bar的open价格进行撮合
 					RT.VA.FAcct.CheckEligible(&tmpOrderRes.FuturesOrderS[i])
 					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
-					// tmpOrderRes.IsExecuted = true
 					RT.VA.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
 					// in case you wanna put some log here!
 				}
@@ -532,7 +531,9 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, strategymodule st
 				// this part is for test only
 				log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Market Close")
 			}
-			// 期货实盘应该以接收到收盘数据为准，这个过程应该是由其他goroutine完成的
+			// ! 期货实盘应该以接收到收盘数据为准，这个过程应该由其他goroutine完成
+			// 期货收盘
+
 		}
 		//  2.1 账户接收数据刷新
 		if len(data.Stockdata) != 0 {

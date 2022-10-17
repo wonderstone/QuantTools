@@ -150,7 +150,10 @@ func (SA *StockAccount) CheckEligible(o *order.StockOrder) {
 // 针对order产生反应
 func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
 	if SO.IsExecuted {
-		if SA.Fundavail <= SO.CalEquity() {
+		// - 这部分实际上与CheckEligible重复，但是为了保证程序的健壮性，还是加上
+		// - 未来性能考虑，可以去掉
+		if (SA.Fundavail <= SO.CalEquity() && SO.OrderDirection == "Buy") ||
+			(SA.PosMap[SO.InstID].CalPosPrevNum() < SO.OrderNum && SO.OrderDirection == "Sell") {
 			// * panic("确保账户足够资金")
 		} else {
 			// * in principle, backtest should be done under one mutex lock

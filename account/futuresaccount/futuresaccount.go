@@ -10,7 +10,7 @@ import (
 )
 
 type FuturesAccount struct {
-	//共9个字段  其中  数值类型7个  真实账户核心字段仅保留MktVal、FundAvail
+	// * 共9个字段  其中  数值类型7个  真实账户核心字段仅保留MktVal、FundAvail
 	InitTime         string
 	UdTime           string // update everytime
 	BmkVal           float64
@@ -20,7 +20,7 @@ type FuturesAccount struct {
 	AllCommission    float64                   // 单独标记
 	PosMap           map[string]*PositionSlice //用指针版本
 	MarketValueSlice []account.MktValDataType
-	// add one tmp UUID field for log testing
+	// todo: add one tmp UUID field for log testing
 	UUID string
 }
 
@@ -176,7 +176,9 @@ func (FA *FuturesAccount) Margin() (Margin float64) {
 // 持仓盈亏 = (最新价 - 持仓均价)*手数  相当于基准从昨天计算  持仓均价是用每日MTM的结算价进行替换的
 func (FA *FuturesAccount) ActOnOrder(FO *order.FuturesOrder) {
 	if FO.IsExecuted {
-		if FA.Fundavail <= FO.CalMargin() {
+		// 相比股票，期货只检查了开仓保证金，没有检查平仓合约数
+		// 这部分逻辑放在了Account的CheckEligible中，就不再重复了
+		if FA.Fundavail <= FO.CalMargin() && FO.OrderType == "Open" {
 			// panic("确保账户具有足够资金")
 		} else {
 			// in principle, backtest should be done under one mutex lock

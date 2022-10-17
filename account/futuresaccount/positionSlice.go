@@ -19,6 +19,9 @@ func NewPosSlice() *PositionSlice {
 
 // 计算PosTdyNumL 和PosTdyNumS
 func (ps *PositionSlice) CalPosTdyNum() (PosTdyNumL float64, PosTdyNumS float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		if pd.Dir == "Buy" {
 			PosTdyNumL += pd.Num
@@ -31,6 +34,9 @@ func (ps *PositionSlice) CalPosTdyNum() (PosTdyNumL float64, PosTdyNumS float64)
 
 // 计算PosPrevNumL 和osPrevNumS
 func (ps *PositionSlice) CalPosPrevNum() (PosPrevNumL float64, PosPrevNumS float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosPrevs {
 		if pd.Dir == "Buy" {
 			PosPrevNumL += pd.Num
@@ -43,6 +49,9 @@ func (ps *PositionSlice) CalPosPrevNum() (PosPrevNumL float64, PosPrevNumS float
 
 // 遍历获得所有Margin汇总
 func (ps *PositionSlice) CalMargin() (Margin float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		Margin += pd.Margin
 	}
@@ -55,6 +64,9 @@ func (ps *PositionSlice) CalMargin() (Margin float64) {
 // CalUnRealizedProfit
 
 func (ps *PositionSlice) CalUnRealizedProfit() (UnRealizedProfit float64) {
+	if ps == nil {
+		return
+	}
 	for _, pd := range ps.PosTdys {
 		UnRealizedProfit += pd.CalUnRealizedProfit(pd.LastPrice)
 	}
