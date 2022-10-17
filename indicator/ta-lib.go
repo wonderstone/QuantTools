@@ -7,16 +7,23 @@ import (
 
 // MA is the moving average indicator
 type MA struct {
-	period int
-	DQ     *cb.Queue
+	period           int
+	DefaultInfoSlice []string
+	DQ               *cb.Queue
 }
 
 // NewMA returns a new MA indicator
 func NewMA(period int) *MA {
 	return &MA{
-		period: period,
-		DQ:     cb.New(period),
+		period:           period,
+		DefaultInfoSlice: []string{"Close"},
+		DQ:               cb.New(period),
 	}
+}
+
+// LoadData loads 1 tick info datas into the indicator
+func (m *MA) LoadData(data []float64) {
+	m.DQ.Enqueue(data[0])
 }
 
 // Eval evaluates the indicator
