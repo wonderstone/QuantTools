@@ -39,6 +39,7 @@ type IStrategy interface {
 	ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult)
 }
 
+// something like simple factory pattern
 func GetStrategy(sec string, dir string, tag string) IStrategy {
 	switch tag {
 	case "simple":
