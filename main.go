@@ -92,9 +92,10 @@ func main() {
 	ma2map := make(map[string]*indicator.MA)
 	// ** iter the target list
 	for _, stock := range rt.SInstrNames {
-		ma2map[stock] = indicator.NewMA(2)
-		ma2map[stock].DQ.Enqueue(1.0)
-		ma2map[stock].DQ.Enqueue(2.0)
+		ma2map[stock] = indicator.NewMA(2, []string{"close"})
+		// ** data preloading for indicators
+		ma2map[stock].LoadData(map[string]float64{"close": 1.0})
+		ma2map[stock].LoadData(map[string]float64{"close": 2.0})
 	}
 	// //be serious you jackass!!!
 
@@ -103,7 +104,8 @@ func main() {
 		for _, dts := range m.BT.BCM.BarCMapkeydts {
 			// ** add an indicator to the m.BT.BCM.BarCMap[dts]
 			for key, value := range m.BT.BCM.BarCMap[dts].Stockdata {
-				ma2map[key].DQ.Enqueue(value.IndiDataMap["close"])
+				ma2map[key].LoadData(value.IndiDataMap)
+				// ma2map[key].DQ.Enqueue(value.IndiDataMap["close"])
 				m.BT.BCM.BarCMap[dts].Stockdata[key].IndiDataMap["ma2_m"] = ma2map[key].Eval()
 			}
 			// peek the data, do delete when the test is done
