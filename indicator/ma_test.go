@@ -6,7 +6,7 @@ import (
 )
 
 func TestEval(t *testing.T) {
-	ma := NewMA(3, []string{"Close"})
+	ma := NewMA([]int{3}, []string{"Close"})
 	ma.LoadData(map[string]float64{"Close": 1.0})
 	ma.LoadData(map[string]float64{"Close": 2.0})
 	ma.LoadData(map[string]float64{"Close": 3.0})

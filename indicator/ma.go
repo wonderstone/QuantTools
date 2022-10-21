@@ -7,18 +7,18 @@ import (
 
 // MA is the moving average indicator
 type MA struct {
-	period int
+	ParSlice []int
 	// info fields for indicator calculation
 	InfoSlice []string
 	DQ        *cb.Queue
 }
 
 // NewMA returns a new MA indicator
-func NewMA(period int, infoslice []string) *MA {
+func NewMA(ParSlice []int, infoslice []string) *MA {
 	return &MA{
-		period:    period,
+		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
-		DQ:        cb.New(period),
+		DQ:        cb.New(ParSlice[0]),
 	}
 }
 

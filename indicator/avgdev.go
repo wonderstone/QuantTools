@@ -9,21 +9,21 @@ import (
 
 // AvgDev is the AvgDev indicator
 type AvgDev struct {
-	period    int
+	ParSlice  []int
 	InfoSlice []string
 	DQ        *cb.Queue
-	ma        *MA
+	MA        *MA
 }
 
 // NewAvgDev returns a new AvgDev indicator
-func NewAvgDev(period int, infoslice []string) *AvgDev {
+func NewAvgDev(ParSlice []int, infoslice []string) *AvgDev {
 	// * 嵌套指标infoslice不同时，记得单独处理
-	tmpma := NewMA(period, infoslice)
+	tmpma := NewMA(ParSlice, infoslice)
 	return &AvgDev{
-		period:    period,
+		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQ:        tmpma.DQ,
-		ma:        tmpma,
+		MA:        tmpma,
 	}
 }
 
@@ -33,12 +33,12 @@ func (a *AvgDev) LoadData(data map[string]float64) {
 }
 
 // Eval evaluates the indicator
-func (m *AvgDev) Eval() float64 {
+func (a *AvgDev) Eval() float64 {
 	var sum, devSum float64
-	sum = m.ma.Eval()
-	for _, v := range m.DQ.Values() {
-		devSum += math.Abs(v.(map[string]float64)[m.InfoSlice[0]] - sum/float64(m.DQ.Size()))
+	sum = a.MA.Eval()
+	for _, v := range a.DQ.Values() {
+		devSum += math.Abs(v.(map[string]float64)[a.InfoSlice[0]] - sum/float64(a.DQ.Size()))
 	}
 
-	return devSum / float64(m.DQ.Size())
+	return devSum / float64(a.DQ.Size())
 }

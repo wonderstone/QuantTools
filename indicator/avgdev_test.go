@@ -6,7 +6,7 @@ import (
 )
 
 func TestAVGDEVEval(t *testing.T) {
-	avgdev := NewAvgDev(5, []string{"Close"})
+	avgdev := NewAvgDev([]int{5}, []string{"Close"})
 	avgdev.LoadData(map[string]float64{"Close": 1.0})
 	avgdev.LoadData(map[string]float64{"Close": 2.0})
 	avgdev.LoadData(map[string]float64{"Close": 3.0})
