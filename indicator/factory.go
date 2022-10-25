@@ -5,5 +5,5 @@ type IIndicator interface {
 	Eval() float64
 }
 
-// factory pattern
-func GetIndicator()
+// // factory pattern
+// func GetIndicator()

@@ -2,7 +2,7 @@ package indicator
 
 // use gods to generate the queue
 import (
-	cb "github.com/emirpasic/gods/queues/circularbuffer"
+	cb "github.com/wonderstone/QuantTools/indicator/tools"
 )
 
 // Var 方差指标
@@ -27,8 +27,8 @@ func NewVar(ParSlice []int, infoslice []string) *Var {
 }
 
 // LoadData loads 1 tick info datas into the indicator
-func (v *Var) LoadData(Data []float64) {
-	v.DQ.Enqueue(Data[0])
+func (v *Var) LoadData(data map[string]float64) {
+	v.MA.LoadData(data)
 }
 
 // Eval evaluates the indicator

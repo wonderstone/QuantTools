@@ -4,7 +4,7 @@ package indicator
 import (
 	"math"
 
-	cb "github.com/emirpasic/gods/queues/circularbuffer"
+	cb "github.com/wonderstone/QuantTools/indicator/tools"
 )
 
 // AvgDev is the AvgDev indicator
@@ -29,16 +29,15 @@ func NewAvgDev(ParSlice []int, infoslice []string) *AvgDev {
 
 // LoadData loads 1 tick info datas into the indicator
 func (a *AvgDev) LoadData(data map[string]float64) {
-	a.DQ.Enqueue(data)
+	a.MA.LoadData(data)
 }
 
 // Eval evaluates the indicator
 func (a *AvgDev) Eval() float64 {
-	var sum, devSum float64
-	sum = a.MA.Eval()
+	var mean, devSum float64
+	mean = a.MA.Eval()
 	for _, v := range a.DQ.Values() {
-		devSum += math.Abs(v.(map[string]float64)[a.InfoSlice[0]] - sum/float64(a.DQ.Size()))
+		devSum += math.Abs(v.(float64) - mean)
 	}
-
 	return devSum / float64(a.DQ.Size())
 }
