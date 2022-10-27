@@ -7,7 +7,7 @@ import (
 
 func TestNewInfoFromConfig(t *testing.T) {
 	// NewInfoFromConfig
-	i := NewInfoFromConfig("../config/Manual", "accountinfo")
+	i := NewInfoFromConfig("../config/Manual/", "accountinfo.yaml")
 	for k, v := range i.IM {
 		fmt.Println(k, v)
 		for k1, v1 := range v.(map[string]interface{}) {

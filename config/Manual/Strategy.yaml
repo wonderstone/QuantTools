@@ -1,5 +1,5 @@
 ---
 # viper's GetStringMap function makes key value lowercase
-Default:
-    SNum:  10
-    FNum:  10
+default:
+    snum:  10
+    fnum:  10

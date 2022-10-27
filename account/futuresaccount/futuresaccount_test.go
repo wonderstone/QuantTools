@@ -12,6 +12,7 @@ import (
 
 func TestNewFuturesAccount(t *testing.T) {
 	// 注意，这里使用testify的assert进行对象比对，如果是指针或切片，比对的是具体的对象而非地址
+	// 由于添加uuid，这个肯定过不了
 	cash := 10000.0
 	initTime := "20220515 13:35:27 500"
 	res := NewFuturesAccount(initTime, cash)

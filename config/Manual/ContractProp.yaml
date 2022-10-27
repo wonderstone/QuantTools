@@ -1,44 +1,44 @@
 ---
 # viper's GetStringMap function makes key value lowercase
-TARGETPROP:
-  STOCK:
-    ST:
-        ContractSize:  100.0
-        TransferFeeRate:  0.00001
-        TaxRate:  0.001
-        CommBrokerRate:  0.0000687
-    MainBoard:
-        ContractSize:  100.0
-        TransferFeeRate:  0.00001
-        TaxRate:  0.001
-        CommBrokerRate:  0.0000687
-    STAR:
-        ContractSize:  100.0
-        TransferFeeRate:  0.00001
-        TaxRate:  0.001
-        CommBrokerRate:  0.0000687
-    ChiNext:
-        ContractSize:  100.0
-        TransferFeeRate:  0.00001
-        TaxRate:  0.001
-        CommBrokerRate:  0.0000687
-    ETF:
-        ContractSize:  100.0
-        TransferFeeRate:  0.00001
-        TaxRate:  0.0
-        CommBrokerRate:  0.0000687
+targetprop:
+  stock:
+    st:
+        contractsize:  100.0
+        transferfeerate:  0.00001
+        taxrate:  0.001
+        commbrokerrate:  0.0000687
+    mainboard:
+        contractsize:  100.0
+        transferfeerate:  0.00001
+        taxrate:  0.001
+        commbrokerrate:  0.0000687
+    star:
+        contractsize:  100.0
+        transferfeerate:  0.00001
+        taxrate:  0.001
+        commbrokerrate:  0.0000687
+    chinext:
+        contractsize:  100.0
+        transferfeerate:  0.00001
+        taxrate:  0.001
+        commbrokerrate:  0.0000687
+    etf:
+        contractsize:  100.0
+        transferfeerate:  0.00001
+        taxrate:  0.0
+        commbrokerrate:  0.0000687
 
-  FUTURES:
+  futures:
     au2210:
-        ContractSize:  1000.0
-        TickSize:  0.02
-        MarginLong:  10.0
-        MarginShort:  10.0
-        MarginBroker:  0.0
-        IsCommRateType: false
-        CommOpen:  2.0
-        CommCloseToday:  0.0
-        CommClosePrevious:  2.0
-        CommBroker:  0.01
+        contractsize:  1000.0
+        ticksize:  0.02
+        marginlong:  10.0
+        marginshort:  10.0
+        marginbroker:  0.0
+        iscommratetype: false
+        commopen:  2.0
+        commclosetoday:  0.0
+        commcloseprevious:  2.0
+        commbroker:  0.01
 
 ...

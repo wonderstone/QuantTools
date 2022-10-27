@@ -13,5 +13,4 @@ func NewUpdateMI(time string, instID string, value float64) UpdateMI {
 		InstID:          instID,
 		Value:           value,
 	}
-
 }

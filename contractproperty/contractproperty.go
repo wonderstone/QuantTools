@@ -3,7 +3,7 @@ package contractproperty
 import (
 	"regexp"
 
-	"github.com/spf13/viper"
+	"github.com/wonderstone/QuantTools/configer"
 )
 
 type CPMap struct {
@@ -39,13 +39,17 @@ func NewSCP(contractsize float64, transferfeerate float64, taxrate float64, comm
 
 // viper read config file by input，sample yaml file in config/Manual dir
 func NewSCPFromConfig(confName string, sec string, dir string) SCP {
-	viper.SetConfigName(confName)
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + confName)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	tmpMap := viper.GetStringMap("TARGETPROP.STOCK." + sec)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
+	tmpMap := c.GetStringMap("TARGETPROP.STOCK." + sec)
 	return NewSCP(tmpMap["contractsize"].(float64), tmpMap["transferfeerate"].(float64), tmpMap["taxrate"].(float64), tmpMap["commbrokerrate"].(float64))
 }
 
@@ -137,15 +141,19 @@ func NewFCP(contractsize float64, ticksize float64, marginlong float64, marginsh
 	}
 }
 
-// viper read config file by input
+// read config file by input
 func NewFCPFromConfig(confName string, instrID string, dir string) FCP {
-	viper.SetConfigName(confName)
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + confName)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	tmpMap := viper.GetStringMap("TARGETPROP.FUTURES." + instrID)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
+	tmpMap := c.GetStringMap("TARGETPROP.FUTURES." + instrID)
 	if len(tmpMap) == 0 {
 		panic("check config file for instrIDs")
 	}
@@ -161,13 +169,17 @@ func SimpleNewFCPFromMap(cpm CPMap, code string) FCP {
 
 // NewCPMap from config file
 func NewCPMap(confName string, dir string) CPMap {
-	viper.SetConfigName(confName)
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + confName)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	tmpMap := viper.GetStringMap("TARGETPROP")
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
+	tmpMap := c.GetStringMap("TARGETPROP")
 	if len(tmpMap) == 0 {
 		panic("check config file for instrIDs")
 	}

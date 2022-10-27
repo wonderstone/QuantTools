@@ -14,8 +14,8 @@ import (
 func TestMatchFuturesOrder(t *testing.T) {
 	// new a fcp from instID
 	fmt.Println("test MatchFuturesOrder")
-	confName := "ContractProp"
-	dir := "../config/Manual"
+	confName := "ContractProp.yaml"
+	dir := "../config/Manual/"
 	cpm := cp.NewCPMap(confName, dir)
 	instID := "au2210"
 	fcp := cp.SimpleNewFCPFromMap(cpm, instID)

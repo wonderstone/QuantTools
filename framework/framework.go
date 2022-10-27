@@ -18,10 +18,10 @@ import (
 
 	"sort"
 	"strings"
-	// "sync"
+
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/wonderstone/QuantTools/configer"
 )
 
 // 0. steps: init the backtest struct -> PrepareData -> IterData
@@ -64,8 +64,6 @@ type BackTest struct {
 	// this part is only for test with zerolog and structuring the log
 	// fileLogger zerolog.Logger
 
-	// add a sync.RWMutex to make sure BackTest
-	// sync.RWMutex
 }
 
 type RealTime struct {
@@ -135,13 +133,17 @@ func NewBackTest(SInitVal float64, FInitVale float64, BDt string, EDt string,
 }
 
 func NewBackTestConfig(sec string, dir string) BackTest {
-	viper.SetConfigName("BackTest")
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + "BackTest.yaml")
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	tmpMap := viper.GetStringMap(sec)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	tmpMap := c.GetStringMap(sec)
+
 	var sinstrnames []string
 	for _, v := range tmpMap["sinstrnames"].([]interface{}) {
 		sinstrnames = append(sinstrnames, v.(string))
@@ -207,28 +209,32 @@ func NewRealTime(info map[string]interface{}, va *virtualaccount.VAcct, SInstrNs
 
 // NewRealTimeConfig 从配置文件中读取配置信息 filename could be realtime
 func NewRealTimeConfig(dir string, filename string, info map[string]interface{}, va *virtualaccount.VAcct) RealTime {
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + filename)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	SInstrNs := viper.GetStringSlice("DataFields.sinstrnames")
-	SIndiNs := viper.GetStringSlice("AFields.SIndiNmsAfter")
-	SRDtfields := viper.GetStringSlice("DataFields.scsvdatafields")
-	FInstrNs := viper.GetStringSlice("DataFields.finstrnames")
-	FIndiNs := viper.GetStringSlice("DataFields.findinames")
-	FRDtfields := viper.GetStringSlice("DataFields.fcsvdatafields")
-	ConfName := viper.GetString("ContractProp.ConfName")
-	CPDataDir := viper.GetString("ContractProp.CPDataDir")
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
 
-	MatcherSlpg4S := viper.GetFloat64("MatcherParam.MatcherSlippage4S")
-	MatcherSlpg4F := viper.GetFloat64("MatcherParam.MatcherSlippage4F")
-	StrategyMod := viper.GetString("StgModel.StrategyModule")
-	SMGEPType := viper.GetString("StgModel.SMGEPType")
-	SMName := viper.GetString("StgModel.SMName")
-	SMDataDir := viper.GetString("StgModel.SMDataDir")
-	cpm := cp.NewCPMap("ContractProp", dir)
+	SInstrNs := c.GetStringSlice("DataFields.sinstrnames")
+	SIndiNs := c.GetStringSlice("AFields.SIndiNmsAfter")
+	SRDtfields := c.GetStringSlice("DataFields.scsvdatafields")
+	FInstrNs := c.GetStringSlice("DataFields.finstrnames")
+	FIndiNs := c.GetStringSlice("DataFields.findinames")
+	FRDtfields := c.GetStringSlice("DataFields.fcsvdatafields")
+	ConfName := c.GetString("ContractProp.ConfName")
+	CPDataDir := c.GetString("ContractProp.CPDataDir")
+
+	MatcherSlpg4S := c.GetFloat64("MatcherParam.MatcherSlippage4S")
+	MatcherSlpg4F := c.GetFloat64("MatcherParam.MatcherSlippage4F")
+	StrategyMod := c.GetString("StgModel.StrategyModule")
+	SMGEPType := c.GetString("StgModel.SMGEPType")
+	SMName := c.GetString("StgModel.SMName")
+	SMDataDir := c.GetString("StgModel.SMDataDir")
+	cpm := cp.NewCPMap("ContractProp.yaml", "./config/Manual/")
 	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
@@ -250,13 +256,6 @@ func getFileMap(path string) map[string]void {
 
 // 0. 输出strategy
 func (BT *BackTest) GetStrategy(sec string, dir string, tag string) strategyModule.IStrategy {
-	// switch BT.StrategyMod {
-	// case "Simple":
-	// 	return strategyModule.NewStrategyFromConfig(sec, dir)
-	// default:
-	// 	return strategyModule.NewStrategyFromConfig(sec, dir)
-	// }
-
 	return strategyModule.GetStrategy(sec, dir, tag)
 }
 
@@ -466,8 +465,6 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType, einfo map[string]interface{}) float64 {
 	//  4.0 获得账户的mkvslice 进行评估
 	// new a performanceevaluator
-	// BT.Lock()
-	// defer BT.Unlock()
 	PE := perfeval.NewPerfEval()
 	PE.MktValSlice = MarketValueSlice
 	return PE.CalcPerfEvalResult(einfo)
@@ -477,7 +474,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 	// 期货账户开启goroutine 用于接收mc数据 并更新账户
 	go RT.ActOnCM(mc)
 	// 2.0 defer 将va数据更新写入到realtime.yaml中
-	defer exporter.ReplaceVA("../config/Manual", "realtime", *RT.VA)
+	defer exporter.ReplaceVA("./config/Manual/", "realtime.yaml", *RT.VA)
 
 	// 3.0 dataprocessor中RealTimeProcess
 	var lastdatetime string

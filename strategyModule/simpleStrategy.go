@@ -3,8 +3,6 @@ package strategyModule
 // market timing strategy
 // one expression for one strategy, therefore one market for one strategy
 import (
-	//"math"
-
 	"fmt"
 	"math"
 
@@ -14,7 +12,7 @@ import (
 	"github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/order"
 
-	"github.com/spf13/viper"
+	"github.com/wonderstone/QuantTools/configer"
 )
 
 type SimpleStrategy struct {
@@ -39,13 +37,17 @@ func NewSimpleStrategy(SInstNms, SIndiNms, FInstNms, FIndiNms []string, Snum, Fn
 
 // this function is nessary for the framework
 func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
-	viper.SetConfigName("BackTest")
-	viper.AddConfigPath(dir)
-	err := viper.ReadInConfig()
+	c := configer.New(dir + "BackTest.yaml")
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	tmpMap := viper.GetStringMap(sec)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	tmpMap := c.GetStringMap(sec)
+
 	var sinstrnames []string
 	for _, v := range tmpMap["sinstrnames"].([]interface{}) {
 		sinstrnames = append(sinstrnames, v.(string))
@@ -63,17 +65,19 @@ func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
 	for _, v := range tmpMap["findinames"].([]interface{}) {
 		findinames = append(findinames, v.(string))
 	}
-	viper.SetConfigName("Strategy")
-	viper.AddConfigPath(dir)
-	err = viper.ReadInConfig()
+
+	c = configer.New(dir + "Strategy.yaml")
+	err = c.Load()
+	if err != nil {
+		panic(err)
+	}
+	err = c.Unmarshal()
 	if err != nil {
 		panic(err)
 	}
 
-	SNum := viper.GetFloat64("Default.SNum")
-	FNum := viper.GetFloat64("Default.FNum")
-	// SESSDFLD := viper.GetStringSlice("Default.SESSDFLD")
-	// FESSDFLD := viper.GetStringSlice("Default.FESSDFLD")
+	SNum := c.GetFloat64("default.snum")
+	FNum := c.GetFloat64("default.fnum")
 
 	return SimpleStrategy{
 		SInstNames: sinstrnames,
@@ -147,11 +151,8 @@ func (ss SimpleStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcc
 						Float64("Eval", tmps[0]).Str("InstID", instID).
 						Msg("Strategy sell")
 				}
-
 			}
-
 		}
-
 	}
 
 	// 判断期货标的切片FInstrNames是否为空，如果为空，则不操作期货数据循环

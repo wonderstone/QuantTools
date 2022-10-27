@@ -1,7 +1,5 @@
 package dataprocessor
 
-//  this edition is based on rwmutex and map
-
 import (
 	"errors"
 	"time"

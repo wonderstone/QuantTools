@@ -8,16 +8,6 @@ import (
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
 
-// type QuotePublisher interface {
-// 	Pub(bc chan<- dataprocessor.BarC, mc chan<- map[string]map[string]float64)
-// }
-
-// type QuoteSubscriber interface {
-// 	// receive data from bc and mc and run strategy
-// 	Sub(bc <-chan dataprocessor.BarC, mc <-chan map[string]map[string]float64, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string)
-// 	// sub should check if sos or fos is nil and SendSO and SendFO
-// }
-
 func SendOrders(info map[string]interface{}, orders strategyModule.OrderResult) {
 	if orders.StockOrderS != nil {
 		SendSO(orders.StockOrderS, info)

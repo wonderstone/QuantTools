@@ -12,8 +12,8 @@ import (
 func TestNewStockOrder(t *testing.T) {
 	// new a scp from code
 	fmt.Println("test NewStockOrder")
-	confName := "ContractProp"
-	dir := "../config/Manual"
+	confName := "ContractProp.yaml"
+	dir := "../config/Manual/"
 	cpm := cp.NewCPMap(confName, dir)
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)

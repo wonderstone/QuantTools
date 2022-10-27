@@ -4,22 +4,6 @@ import (
 	cp "github.com/wonderstone/QuantTools/contractproperty"
 )
 
-// 存在过度设计嫌疑，回退到string判断。
-// type FuturesOrderTYP int
-
-// const (
-// 	Open FuturesOrderTYP = iota
-// 	CloseToday
-// 	ClosePrevious
-// )
-// 存在过度设计嫌疑，回退到string判断。
-// type OrderDir int // 与stock类型共用
-
-// const (
-// 	Buy OrderDir = iota // 注意  OrderDir 参考Python-CTP规范，直接靠近CTP端
-// 	Sell
-// )
-
 type FuturesOrder struct {
 	InstID         string
 	IsEligible     bool

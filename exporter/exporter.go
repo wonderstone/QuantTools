@@ -1,12 +1,11 @@
 package exporter
 
 import (
-	// "fmt"
 	"io/ioutil"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
+	"github.com/wonderstone/QuantTools/configer"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,10 +16,13 @@ import (
 // va: the virtual account info to be added
 // AInfo: additional info to be added
 func ExportRealtimeYaml(configDir string, filename string, sec string, va virtualaccount.VAcct, AInfo interface{}) {
-	// read BackTest configuration from file  viper is not thread safe
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(configDir)
-	err := viper.ReadInConfig()
+	// read BackTest configuration from file
+	c := configer.New(configDir + filename)
+	err := c.Load()
+	if err != nil {
+		panic(err)
+	}
+	err = c.Unmarshal()
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +35,7 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 	// Add Data fields
 	tdm := make(map[string]interface{})
 	// fmt.Println(viper.GetString("SMName"))
-	tmpMap := viper.GetStringMap(sec)
+	tmpMap := c.GetStringMap(sec)
 	var sinstrnames []string
 	for _, v := range tmpMap["sinstrnames"].([]interface{}) {
 		sinstrnames = append(sinstrnames, v.(string))
@@ -107,14 +109,17 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 // filename: the name of the file to be updated, realtime.yaml it is
 // va: the virtual account info to be updated
 func ReplaceVA(configDir string, filename string, va virtualaccount.VAcct) {
-	// read realtime configuration from file  viper is not thread safe
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(configDir)
-	err := viper.ReadInConfig()
+	conf := configer.New(configDir + filename)
+	err := conf.Load()
 	if err != nil {
 		panic(err)
 	}
-	c := viper.AllSettings()
+	err = conf.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+
+	c := conf.GetContent()
 	// replace the va field
 	c["va"] = va
 	// export yaml file with yaml.v3
@@ -136,15 +141,18 @@ filename : the name of the yaml file, GEP.yaml would be GEP
 secname :  the yaml file section name, e.g. "GEP"
 kes : the Karva expression string slice, but put a interface{} here */
 func ExportSKE(configDir string, filename string, secname string, KES interface{}) {
-	// read GEP configuration from file. viper is not thread safe
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(configDir)
-	err := viper.ReadInConfig()
+	// read GEP configuration from file.
+	conf := configer.New(configDir + filename)
+	err := conf.Load()
+	if err != nil {
+		panic(err)
+	}
+	err = conf.Unmarshal()
 	if err != nil {
 		panic(err)
 	}
 
-	tmpMap := viper.GetStringMap(secname)
+	tmpMap := conf.GetStringMap(secname)
 	m := make(map[string]interface{})
 	// Add Data fields
 	// make a slice to store all the function names

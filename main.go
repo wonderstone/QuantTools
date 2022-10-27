@@ -39,7 +39,7 @@ func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 func main() {
 	// * **********************This part is for the Backtesting!**********************
 	// * New a manager instance:
-	m := NewManagerfromConfig("Default", "Default", "./config/Manual")
+	m := NewManagerfromConfig("Default", "Default", "./config/Manual/")
 	// todo: download the data to tmpdata dir first no matter what the data source is
 	// // pretend the data has been downloaded already
 	// * manager prepares the market data
@@ -78,10 +78,11 @@ func main() {
 
 	// * 1.0 从realtime.yaml中读取数据信息
 	configdir := "./"
-	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir)
-	info := realinfo.NewInfoFromConfig("./config/Manual", "accountinfo")
+	configfile := "realtime.yaml"
+	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir, configfile)
+	info := realinfo.NewInfoFromConfig("./config/Manual/", "accountinfo.yaml")
 
-	rt := framework.NewRealTimeConfig(configdir, "realtime", info.IM, &vatmp)
+	rt := framework.NewRealTimeConfig(configdir, "realtime.yaml", info.IM, &vatmp)
 	// fmt.Println(rt)
 
 	// * build a barc channel
@@ -114,7 +115,7 @@ func main() {
 			// }
 			bch <- m.BT.BCM.BarCMap[dts]
 			// delay for 0.1 second
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 
 		}
 		// * close the channel

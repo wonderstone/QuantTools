@@ -3,8 +3,8 @@ package futuresaccount
 
 import (
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"github.com/wonderstone/QuantTools/account"
+	"github.com/wonderstone/QuantTools/configer"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
 	"github.com/wonderstone/QuantTools/order"
 )
@@ -41,13 +41,16 @@ func NewFuturesAccount(initTime string, cash float64) FuturesAccount {
 // load from a yaml file to generate a FuturesAccount with specific fields
 func NewFAFromConfig(filename string, configpath string, sec string, cpm cp.CPMap) FuturesAccount {
 	// 获取配置文件记录的 Va.FACCT map
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(configpath)
-	err := viper.ReadInConfig()
+	c := configer.New(configpath + filename)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	FAcctMap := viper.GetStringMap(sec)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	FAcctMap := c.GetStringMap(sec)
 	// get the posmap, key is code, value is the position slice:
 	posmap := make(map[string]*PositionSlice)
 	// process interface{} of SAcctMap["posmap"] to yield a map with instid as key and position slice as value
@@ -109,11 +112,11 @@ func NewFAFromConfig(filename string, configpath string, sec string, cpm cp.CPMa
 		// 此处初始化字段4个，创建时间、更新时间、总市值和可用资金
 		InitTime:      FAcctMap["inittime"].(string),
 		UdTime:        FAcctMap["udtime"].(string),
-		BmkVal:        FAcctMap["bmkval"].(float64),
-		MktVal:        FAcctMap["mktval"].(float64),
-		Fundavail:     FAcctMap["fundavail"].(float64),
-		AllProfit:     FAcctMap["allprofit"].(float64),
-		AllCommission: FAcctMap["allcommission"].(float64),
+		BmkVal:        account.GetFloat64(FAcctMap["bmkval"]),
+		MktVal:        account.GetFloat64(FAcctMap["mktval"]),
+		Fundavail:     account.GetFloat64(FAcctMap["fundavail"]),
+		AllProfit:     account.GetFloat64(FAcctMap["allprofit"]),
+		AllCommission: account.GetFloat64(FAcctMap["allcommission"]),
 		UUID:          FAcctMap["uuid"].(string),
 
 		PosMap: posmap,

@@ -1,12 +1,12 @@
-AFields:
-    SIndiNmsAfter:
+afields:
+    sindinmsafter:
         - ma1
         - close
         - vol
-ContractProp:
-    CPDataDir: ./config/Manual
-    ConfName: ContractProp
-DataFields:
+contractprop:
+    cpdatadir: ./config/Manual
+    confname: ContractProp
+datafields:
     fcsvdatafields: []
     findinames: []
     finstrnames: []
@@ -31,18 +31,18 @@ DataFields:
         - ma1
     sinstrnames:
         - sz002673
-MatcherParam:
-    MatcherSlippage4F: 1
-    MatcherSlippage4S: 0.01
-PA:
-    PAType: TA
-    RiskFreeRate: 0
-StgModel:
-    SMDataDir: ./config/Manual
-    SMGEPType: Genome
-    SMName: Strategy
-    StrategyModule: Simple
-VA:
+matcherparam:
+    matcherslippage4f: 1
+    matcherslippage4s: 0.01
+pa:
+    patype: TA
+    riskfreerate: 0
+stgmodel:
+    smdatadir: ./config/Manual
+    smgeptype: Genome
+    smname: Strategy
+    strategymodule: Simple
+va:
     sacct:
         inittime: 2017/10/9 9:39
         udtime: 2021/1/5 10:30

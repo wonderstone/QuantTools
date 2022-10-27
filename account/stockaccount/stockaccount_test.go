@@ -21,6 +21,7 @@ import (
 
 func TestNewStockAccount(t *testing.T) {
 	// 注意，这里使用testify的assert进行对象比对，如果是指针或切片，比对的是具体的对象而非地址
+	// uuid 过不了
 	cash := 100000.0
 	initTime := "20220515 13:35:27 500"
 	res := NewStockAccount(initTime, cash)
@@ -57,7 +58,7 @@ func TestActOnOrder(t *testing.T) {
 
 	var orderscp cp.SCP = cp.SCP{ContractSize: 100, TransferFeeRate: 0.00001, TaxRate: 0.001, CommBrokerRate: 0.0002}
 	// 下一单新 检查
-	tmporder0 := order.NewStockOrder("600000",true, true, "20220515 13:35:27 500", 8.04, 2, "Buy", &orderscp)
+	tmporder0 := order.NewStockOrder("600000", true, true, "20220515 13:35:27 500", 8.04, 2, "Buy", &orderscp)
 	account.ActOnOrder(&tmporder0)
 	// account结构过于复杂，仅核对部分重点字段
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
@@ -71,7 +72,7 @@ func TestActOnOrder(t *testing.T) {
 
 	account.ActOnCM()
 
-	tmporder1 := order.NewStockOrder("600000", true,true, "20220516 13:40:27 500", 8.00, 4, "Buy", &orderscp)
+	tmporder1 := order.NewStockOrder("600000", true, true, "20220516 13:40:27 500", 8.00, 4, "Buy", &orderscp)
 	account.ActOnOrder(&tmporder1)
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
 	assert.Equal(t, "20220516 13:40:27 500", account.UdTime, "账户刷新时间更新不符合预期")
@@ -81,7 +82,7 @@ func TestActOnOrder(t *testing.T) {
 	assert.Equal(t, 4800.0, account.Equity(), "账户总股权更新不符合预期")
 	assert.Equal(t, 4.0, account.PosMap["600000"].CalPosTdyNum(), "账户持股数更新不符合预期")
 
-	tmporder2 := order.NewStockOrder("600000",true, true, "20220516 13:45:27 500", 9.0, 1, "Sell", &orderscp)
+	tmporder2 := order.NewStockOrder("600000", true, true, "20220516 13:45:27 500", 9.0, 1, "Sell", &orderscp)
 	account.ActOnOrder(&tmporder2)
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
 	assert.Equal(t, "20220516 13:45:27 500", account.UdTime, "账户刷新时间更新不符合预期")
@@ -91,7 +92,7 @@ func TestActOnOrder(t *testing.T) {
 	assert.Equal(t, 4500.0, account.Equity(), "账户总股权更新不符合预期")
 	assert.Equal(t, 4.0, account.PosMap["600000"].CalPosTdyNum(), "账户持股数更新不符合预期")
 
-	tmporder3 := order.NewStockOrder("600002", true,true, "20220516 14:45:00 500", 20.0, 1, "Buy", &orderscp)
+	tmporder3 := order.NewStockOrder("600002", true, true, "20220516 14:45:00 500", 20.0, 1, "Buy", &orderscp)
 	account.ActOnOrder(&tmporder3)
 	assert.Equal(t, "20220515 13:25:00 500", account.InitTime, "账户初始化时间更新不符合预期")
 	assert.Equal(t, "20220516 14:45:00 500", account.UdTime, "账户刷新时间更新不符合预期")

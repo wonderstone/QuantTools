@@ -16,7 +16,7 @@ func TestNewBackTestConfig(t *testing.T) {
 }
 
 func TestNewRealTimeConfig(t *testing.T) {
-	va := virtualaccount.NewVirtualAccountFromConfig("../config/Manual")
+	va := virtualaccount.NewVirtualAccountFromConfig("../config/Manual", "")
 	info := realinfo.NewInfoFromConfig("../config/Manual", "accountinfo")
 	rt := NewRealTimeConfig("../config/Manual", "realtime", info.IM, &va)
 	assert.Equal(t, "2017/10/9 9:39", rt.VA.SAcct.InitTime)

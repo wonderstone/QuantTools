@@ -2,9 +2,11 @@
 package stockaccount
 
 import (
+	// "fmt"
+
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"github.com/wonderstone/QuantTools/account"
+	"github.com/wonderstone/QuantTools/configer"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
 	"github.com/wonderstone/QuantTools/order"
 )
@@ -40,13 +42,17 @@ func NewStockAccount(initTime string, cash float64) StockAccount {
 // load from a yaml file to generate a stock account with specific fields
 func NewSAFromConfig(filename string, configpath string, sec string, cpm cp.CPMap) StockAccount {
 	// 获取配置文件记录的 VA.SACCT map
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(configpath)
-	err := viper.ReadInConfig()
+	c := configer.New(configpath + filename)
+	err := c.Load()
 	if err != nil {
 		panic(err)
 	}
-	SAcctMap := viper.GetStringMap(sec)
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	SAcctMap := c.GetStringMap(sec)
+
 	// get the posmap, key is code, value is the position slice:
 	posmap := make(map[string]*PositionSlice)
 	// process interface{} of SAcctMap["posmap"] to yield a map with instid as key and position slice as value
@@ -103,13 +109,13 @@ func NewSAFromConfig(filename string, configpath string, sec string, cpm cp.CPMa
 	return StockAccount{
 		// 此处初始化字段4个，创建时间、更新时间、总市值和可用资金
 		// InitTime:      SAcctMap["inittime"].(string),
-		InitTime:      viper.GetString("VA.SACCT.inittime"),
-		UdTime:        viper.GetString("VA.SACCT.udtime"),
-		MktVal:        viper.GetFloat64("VA.SACCT.mktval"),
-		Fundavail:     viper.GetFloat64("VA.SACCT.fundavail"),
-		AllProfit:     viper.GetFloat64("VA.SACCT.allprofit"),
-		AllCommission: viper.GetFloat64("VA.SACCT.allcommission"),
-		UUID:          viper.GetString("VA.SACCT.uuid"),
+		InitTime:      SAcctMap["inittime"].(string),
+		UdTime:        SAcctMap["udtime"].(string),
+		MktVal:        account.GetFloat64(SAcctMap["mktval"]),
+		Fundavail:     account.GetFloat64(SAcctMap["fundavail"]),
+		AllProfit:     account.GetFloat64(SAcctMap["allprofit"]),
+		AllCommission: account.GetFloat64(SAcctMap["allcommission"]),
+		UUID:          SAcctMap["uuid"].(string),
 		PosMap:        posmap,
 		// MarketValueSlice: tmpMap["marketvalueslice"].([]account.MktValDataType),
 	}

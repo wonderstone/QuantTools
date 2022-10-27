@@ -19,17 +19,6 @@ func NewPerfEval() (PE *PerfEval) {
 	return
 }
 
-// type PerfEvalRes interface{
-// 	Eval() float64
-// }
-
-// type PerfEvalResult struct {
-// 	TotalReturn      float64
-// 	AnnualizedReturn float64
-// 	MaxDrawDown      float64
-// 	SharpeRatio      float64
-// }
-
 func (p *PerfEval) CalcPerfEvalResult(einfo map[string]interface{}) float64 {
 	switch einfo["tag"].(string) {
 	case "TR":
