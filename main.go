@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	// "fmt"
 	"time"
 
 	"os"
@@ -18,6 +17,8 @@ import (
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
 
+const debug = true
+
 // * declare the manager struct used for aggregating the backtest and strategy module
 // * backtest has the parameters and the market data
 // * strategy interface relates to the strategy module
@@ -29,7 +30,7 @@ type manager struct {
 // * Normally NewManager from Config file
 func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 	BT := framework.NewBackTestConfig(secBT, dir)
-	STG := BT.GetStrategy(secSTG, dir, "simple")
+	STG := BT.GetStrategy(secSTG, dir, "DMT")
 	return &manager{
 		BT:  &BT,
 		STG: STG,
@@ -44,21 +45,27 @@ func main() {
 	// // pretend the data has been downloaded already
 	// * manager prepares the market data
 	m.BT.PrepareData()
+	// DCE: debug info
 	// ? this is log part! Market Data has been prepared!
-	log.Info().Msg("Data Prepared!")
+	if debug {
+		log.Info().Msg("Data Prepared!")
+	}
 	// * new a strategy from backtest
 	pstg := m.STG
 	// * new a virtual account
 	// ! be careful about the futures part
 	va := virtualaccount.NewVirtualAccount(m.BT.BeginDate, m.BT.StockInitValue, m.BT.FuturesInitValue)
+	// DCE: debug info
 	// ? this is log part! Virtual Account Created!
-	log.Info().Str("Account UUID", va.SAcct.UUID).Float64("AccountVal", va.SAcct.MktVal).Msg("Virtual Account Created!")
+	if debug {
+		log.Info().Str("Account UUID", va.SAcct.UUID).Float64("AccountVal", va.SAcct.MktVal).Msg("Virtual Account Created!")
+	}
 	// * Iterate the Market data for backtest!
 	m.BT.IterData(&va, m.BT.BCM, pstg, m.BT.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 	// * Get the result from virtual stock account and write to the records.csv file
 	file, err := os.Create("./records.csv")
 	if err != nil {
-		// ? this is log part! Error when creating the records.csv file
+		// ? Fatal level: this is log part! Error when creating the records.csv file
 		log.Fatal().Msg(err.Error())
 	}
 	defer file.Close()
@@ -68,7 +75,7 @@ func main() {
 	for _, record := range va.SAcct.MarketValueSlice {
 		row := []string{record.Time, strconv.FormatFloat(record.MktVal, 'f', 2, 64)}
 		if err := w.Write(row); err != nil {
-			// ? this is log part! Error when writing the records.csv file
+			// ? Fatal level: this is log part! Error when writing the records.csv file
 			log.Fatal().Msg(err.Error())
 		}
 	}

@@ -3,3 +3,5 @@
 default:
     snum:  10
     fnum:  10
+    stimecritic:  "14:50"
+    ftimecritic:  "14:50"

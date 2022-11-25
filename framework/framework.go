@@ -7,6 +7,7 @@ import (
 	"github.com/wonderstone/QuantTools/exporter"
 
 	"io/ioutil"
+	// "os"
 
 	"github.com/wonderstone/QuantTools/dataprocessor"
 	"github.com/wonderstone/QuantTools/matcher"
@@ -23,6 +24,8 @@ import (
 
 	"github.com/wonderstone/QuantTools/configer"
 )
+
+const debug = false
 
 // 0. steps: init the backtest struct -> PrepareData -> IterData
 type BackTest struct {
@@ -60,10 +63,6 @@ type BackTest struct {
 	// market data
 	BCM   *dataprocessor.BarCM
 	CPMap cp.CPMap
-
-	// this part is only for test with zerolog and structuring the log
-	// fileLogger zerolog.Logger
-
 }
 
 type RealTime struct {
@@ -246,6 +245,7 @@ func getFileMap(path string) map[string]void {
 	res := make(map[string]void)
 	var member void
 	fs, _ := ioutil.ReadDir(path)
+	// fs1, _ := os.ReadDir(path)
 	for _, file := range fs {
 		if !file.IsDir() {
 			res[strings.TrimSuffix(file.Name(), ".csv")] = member
@@ -312,15 +312,6 @@ func (BT *BackTest) PrepareData() {
 		dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
 		return dti.Before(dtj)
 	})
-
-	// this part is for test only with zerolog
-	// tmpFile, err := ioutil.TempFile(os.TempDir(), "zerolog_framework")
-	// if err != nil {
-	// 	log.Fatal().Err(err).Msg("Fail to create tmp file")
-	// }
-	// BT.fileLogger = zerolog.New(tmpFile).With().Timestamp().Logger()
-	// fmt.Printf("The log file is allocated at %s\n", tmpFile.Name())
-
 }
 
 // 2. 遍历数据
@@ -345,18 +336,23 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			// 验证数据是否存在,存在时才撮合
 			if matchinfo, isOk := BCM.BarCMap[mapkeydt].Stockdata[tmpOrderRes.StockOrderS[i].InstID]; isOk {
 				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
-					// this part is for test only
-					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
-						Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
-						Msg("Match details")
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
+							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
+							Msg("Match details")
+					}
 					VAcct.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
 					//
 					// tmpOrderRes.IsExecuted = true
 					VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
-					// this part is for test only
-					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
-
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
+					}
 				}
 
 			}
@@ -393,8 +389,11 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 && strings.Fields(lastdatetime)[0] != strings.Fields(mapkeydt)[0] {
 				//2.0.1 如果符合 账户进行对应操作
 				VAcct.SAcct.ActOnCM()
-				// this part is for test only
-				log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Market Close")
+				// DCE: debug info
+				if debug {
+					// this part is for test only
+					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Market Close")
+				}
 			}
 			// 期货这个需要留意一下具体情况
 			if len(BCM.BarCMap[mapkeydt].Futuresdata) != 0 && (strings.Fields(mapkeydt)[1] > "15:15" && strings.Fields(lastdatetime)[1] <= "15:15") {
@@ -414,23 +413,29 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			for instID, barC := range BCM.BarCMap[mapkeydt].Stockdata {
 				if !strategyModule.ContainNaN(barC.IndiDataMap) {
 					VAcct.SAcct.ActOnUpdateMI(mapkeydt, instID, barC.IndiDataMap["close"])
-					// this part is for test only
-					log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
-						Float64("AccountVal", VAcct.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
-						Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
-						Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
-						Str("Target", instID).
-						Msg("Data")
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
+							Float64("AccountVal", VAcct.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
+							Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
+							Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
+							Str("Target", instID).
+							Msg("Data")
+					}
 					// if instID is in PosMap then log
 					if _, ok := VAcct.SAcct.PosMap[instID]; ok {
-						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Str("target", instID).
-							Float64("positdy", VAcct.SAcct.PosMap[instID].CalPosTdyNum()).
-							Float64("posipre", VAcct.SAcct.PosMap[instID].CalPosPrevNum()).
-							Float64("Equity", VAcct.SAcct.PosMap[instID].CalEquity()).
-							Float64("UnRealProfit", VAcct.SAcct.PosMap[instID].CalUnRealizedProfit()).
-							Float64("AllCommission", VAcct.SAcct.AllCommission).Float64("AllProfit", VAcct.SAcct.AllProfit).
-							Float64("Fundavail", VAcct.SAcct.Fundavail).Float64("Equity4ALL", VAcct.SAcct.Equity()).
-							Msg("Account")
+						// DCE: debug info
+						if debug {
+							log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Str("target", instID).
+								Float64("positdy", VAcct.SAcct.PosMap[instID].CalPosTdyNum()).
+								Float64("posipre", VAcct.SAcct.PosMap[instID].CalPosPrevNum()).
+								Float64("Equity", VAcct.SAcct.PosMap[instID].CalEquity()).
+								Float64("UnRealProfit", VAcct.SAcct.PosMap[instID].CalUnRealizedProfit()).
+								Float64("AllCommission", VAcct.SAcct.AllCommission).Float64("AllProfit", VAcct.SAcct.AllProfit).
+								Float64("Fundavail", VAcct.SAcct.Fundavail).Float64("Equity4ALL", VAcct.SAcct.Equity()).
+								Msg("Account")
+						}
 					}
 				}
 			}
@@ -451,13 +456,12 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 		default:
 			panic("mode is not defined")
 		}
-
-		// this part is for test only
-		log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Strategy ActOnData Finished")
-		// 临时看一下，记得删除
-		// fmt.Println("mapkeydt:", mapkeydt, "lastdatetime:", lastdatetime)
+		// DCE: debug info
+		if debug {
+			// this part is for test only
+			log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Strategy ActOnData Finished")
+		}
 		lastdatetime = mapkeydt
-
 	}
 
 }
@@ -490,18 +494,22 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 			// 验证数据是否存在,存在时才撮合
 			if matchinfo, isOk := data.Stockdata[tmpOrderRes.StockOrderS[i].InstID]; isOk {
 				if !strategyModule.ContainNaN(matchinfo.IndiDataMap) {
-					// this part is for test only
-					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).
-						Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
-						Msg("Match details")
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).
+							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
+							Msg("Match details")
+					}
 					// 采用本bar的open价格进行撮合
 					RT.VA.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
 					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], lastdatetime)
 					RT.VA.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
-
-					// this part is for test only
-					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).Msg("Stock Order Executed")
-
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).Msg("Stock Order Executed")
+					}
 				}
 
 			}
@@ -525,8 +533,11 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 			if len(data.Stockdata) != 0 && strings.Fields(lastdatetime)[0] != strings.Fields(timestamp)[0] {
 				//2.0.1 如果符合 账户进行对应操作
 				RT.VA.SAcct.ActOnCM()
-				// this part is for test only
-				log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Market Close")
+				// DCE: debug info
+				if debug {
+					// this part is for test only
+					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Market Close")
+				}
 			}
 			// ! 期货实盘应该以接收到收盘数据为准，这个过程应该由其他goroutine完成
 			// 期货收盘
@@ -537,23 +548,29 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 			for instID, barC := range data.Stockdata {
 				if !strategyModule.ContainNaN(barC.IndiDataMap) {
 					RT.VA.SAcct.ActOnUpdateMI(timestamp, instID, barC.IndiDataMap["close"])
-					// this part is for test only
-					log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).
-						Float64("AccountVal", RT.VA.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
-						Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
-						Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
-						Str("Target", instID).
-						Msg("Data")
+					// DCE: debug info
+					if debug {
+						// this part is for test only
+						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).
+							Float64("AccountVal", RT.VA.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
+							Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
+							Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
+							Str("Target", instID).
+							Msg("Data")
+					}
 					// if instID is in PosMap then log
 					if _, ok := RT.VA.SAcct.PosMap[instID]; ok {
-						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Str("target", instID).
-							Float64("positdy", RT.VA.SAcct.PosMap[instID].CalPosTdyNum()).
-							Float64("posipre", RT.VA.SAcct.PosMap[instID].CalPosPrevNum()).
-							Float64("Equity", RT.VA.SAcct.PosMap[instID].CalEquity()).
-							Float64("UnRealProfit", RT.VA.SAcct.PosMap[instID].CalUnRealizedProfit()).
-							Float64("AllCommission", RT.VA.SAcct.AllCommission).Float64("AllProfit", RT.VA.SAcct.AllProfit).
-							Float64("Fundavail", RT.VA.SAcct.Fundavail).Float64("Equity4ALL", RT.VA.SAcct.Equity()).
-							Msg("Account")
+						// DCE: debug info
+						if debug {
+							log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Str("target", instID).
+								Float64("positdy", RT.VA.SAcct.PosMap[instID].CalPosTdyNum()).
+								Float64("posipre", RT.VA.SAcct.PosMap[instID].CalPosPrevNum()).
+								Float64("Equity", RT.VA.SAcct.PosMap[instID].CalEquity()).
+								Float64("UnRealProfit", RT.VA.SAcct.PosMap[instID].CalUnRealizedProfit()).
+								Float64("AllCommission", RT.VA.SAcct.AllCommission).Float64("AllProfit", RT.VA.SAcct.AllProfit).
+								Float64("Fundavail", RT.VA.SAcct.Fundavail).Float64("Equity4ALL", RT.VA.SAcct.Equity()).
+								Msg("Account")
+						}
 					}
 				}
 			}
@@ -578,11 +595,11 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 				panic("mode is not defined")
 			}
 		}
-
-		// this part is for test only
-		log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Strategy ActOnData Finished")
-		// 临时看一下，记得删除
-		// fmt.Println("mapkeydt:", mapkeydt, "lastdatetime:", lastdatetime)
+		// DCE: debug info
+		if debug {
+			// this part is for test only
+			log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", timestamp).Msg("Strategy ActOnData Finished")
+		}
 		lastdatetime = timestamp
 
 	}

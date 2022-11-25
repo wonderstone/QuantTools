@@ -9,6 +9,8 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
+const debug = false
+
 type OrderResult struct {
 	StockOrderS   []order.StockOrder
 	FuturesOrderS []order.FuturesOrder
@@ -44,6 +46,9 @@ func GetStrategy(sec string, dir string, tag string) IStrategy {
 	switch tag {
 	case "simple":
 		return NewSimpleStrategyFromConfig(sec, dir)
+	case "DMT":
+		s := NewDMTStrategyFromConfig(sec, dir)
+		return &s
 	default:
 		return NewSimpleStrategyFromConfig(sec, dir)
 	}
