@@ -25,7 +25,7 @@ import (
 	"github.com/wonderstone/QuantTools/configer"
 )
 
-const debug = false
+const debug = true
 
 // 0. steps: init the backtest struct -> PrepareData -> IterData
 type BackTest struct {

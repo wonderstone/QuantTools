@@ -30,6 +30,13 @@ func TestCsvReader(t *testing.T) {
 
 	fmt.Println(files)
 
+	// files1, err1 := ListDirNew(dirSPth, "csv")
+	// if err1 != nil {
+	// 	panic(err1)
+	// }
+
+	// fmt.Println(files1)
+
 	bcm := NewBarCM(instSIDS, indiSNames, instFIDS, indiFNames, beginDate, endDate)
 	for _, file := range files {
 		instSID := strings.TrimSuffix(filepath.Base(file), filepath.Ext(filepath.Base(file)))
