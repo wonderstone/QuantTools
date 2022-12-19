@@ -5,11 +5,11 @@ import (
 )
 
 // function to read csv file add some datas and write to a new csv file
-func CsvReader(filedir string) {
+func CsvProcess(filedir string) (ok bool, err error) {
 	// open the csv file
 	csvFile, err := os.Open(filedir)
 	if err != nil {
-		panic("建立csv文件handler出错")
+		return false, fmt.Errorf("建立csv文件handler出错")
 	}
 	defer csvFile.Close()
 	// get the instID from the file name
@@ -18,7 +18,7 @@ func CsvReader(filedir string) {
 	csvReader := csv.NewReader(csvFile)
 	header, err := csvReader.Read()
 	if err != nil {
-		panic("第一行读取csv文件头出错")
+		return false, fmt.Errorf("第一行读取csv文件头出错")
 	}
 	// store the data
 	rows, err := csvReader.ReadAll()
@@ -35,7 +35,7 @@ func CsvReader(filedir string) {
 		for i, j := len(header)-1, len(row)-1; i > 0; i, j = i-1, j-1 {
 			tmpmap[header[i]], err = strconv.ParseFloat(row[j], 64)
 			if err != nil {
-				panic("解析csv数据出错")
+				return false, fmt.Errorf("解析csv数据出错")
 			}
 		}
 
@@ -45,7 +45,7 @@ func CsvReader(filedir string) {
 	// create a new csv file
 	newcsvFile, err := os.Create("newcsv.csv")
 	if err != nil {
-		panic("创建新csv文件出错")
+		return false, fmt.Errorf("创建新csv文件出错")
 	}
 	defer newcsvFile.Close()
 	// create a new csv writer
@@ -58,5 +58,6 @@ func CsvReader(filedir string) {
 	}
 	// flush the data
 	newcsvWriter.Flush()
+	return true, nil
 
 }
