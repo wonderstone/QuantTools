@@ -1,7 +1,13 @@
 package dataprocessor
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
+
+	//"path/filepath"
+	"strconv"
+	//"strings"
 )
 
 // function to read csv file add some datas and write to a new csv file
@@ -13,7 +19,7 @@ func CsvProcess(filedir string) (ok bool, err error) {
 	}
 	defer csvFile.Close()
 	// get the instID from the file name
-	instSID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
+	//instSID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
 	// 逐行读取csv文件
 	csvReader := csv.NewReader(csvFile)
 	header, err := csvReader.Read()
@@ -29,7 +35,7 @@ func CsvProcess(filedir string) (ok bool, err error) {
 	// iter the rows
 	for _, row := range rows {
 		// 需要根据最终csv字段进行调整
-		dtstr := row[0]
+		//dtstr := row[0]
 		// iterate the header backwards and get the data in a temp map
 		tmpmap := make(map[string]float64, len(header))
 		for i, j := len(header)-1, len(row)-1; i > 0; i, j = i-1, j-1 {
