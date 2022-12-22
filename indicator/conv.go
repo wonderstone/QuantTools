@@ -1,8 +1,16 @@
+// All rights reserved. This is part of West Securities ltd. proprietary source code.
+// No part of this file may be reproduced or transmitted in any form or by any means,
+// electronic or mechanical, including photocopying, recording, or by any information
+// storage and retrieval system, without the prior written permission of West Securities ltd.
+
+// author:  Wonderstone (Digital Office Product Department #2)
+// revisor:
+
 package indicator
 
 // use gods to generate the queue
 import (
-	cb "github.com/emirpasic/gods/queues/circularbuffer"
+	cb "github.com/wonderstone/QuantTools/indicator/tools"
 )
 
 // Conv is the Conv indicator
@@ -26,9 +34,9 @@ func NewConv(ParSlice []int, infoslice []string) *Conv {
 }
 
 // LoadData loads 1 tick info datas into the indicator
-func (c *Conv) LoadData(Data []float64) {
-	c.DQS.Enqueue(Data[0])
-	c.DQI.Enqueue(Data[1])
+func (c *Conv) LoadData(data map[string]float64) {
+	c.DQS.Enqueue(data[c.InfoSlice[0]])
+	c.DQI.Enqueue(data[c.InfoSlice[1]])
 }
 
 // Eval evaluates the indicator
@@ -39,7 +47,6 @@ func (v *Conv) Eval() float64 {
 	v.Ma.DQ = v.DQI
 	avgIndex := v.Ma.Eval()
 	for i := range v.DQS.Values() {
-
 		sum += (v.DQI.Values()[i].(float64) - avgStock) * (v.DQI.Values()[i].(float64) - avgIndex)
 	}
 	return sum / float64(v.DQI.Size())

@@ -1,3 +1,11 @@
+// All rights reserved. This is part of West Securities ltd. proprietary source code.
+// No part of this file may be reproduced or transmitted in any form or by any means,
+// electronic or mechanical, including photocopying, recording, or by any information
+// storage and retrieval system, without the prior written permission of West Securities ltd.
+
+// author:  Wonderstone (Digital Office Product Department #2)
+// revisor:
+
 package indicator
 
 // use gods to generate the queue

@@ -8,26 +8,23 @@
 
 package indicator
 
-type IndiInfo struct {
-	Name      string
-	IndiType  string
-	ParSlice  []int
-	InfoSlice []string
-}
+import (
+	"testing"
 
-type IIndicator interface {
-	LoadData(data map[string]float64)
-	Eval() float64
-}
+	"github.com/stretchr/testify/assert"
+)
 
-// factory pattern
-func IndiFactory(ii IndiInfo) IIndicator {
-	switch ii.IndiType {
-	case "MA":
-		return NewMA(ii.ParSlice, ii.InfoSlice)
-	case "Var":
-		return NewVar(ii.ParSlice, ii.InfoSlice)
-	default:
-		return nil
+// Test the indicator factory
+func TestFactory(t *testing.T) {
+	// Test the indicator factory
+	indis := []IndiInfo{
+		{"MA10", "MA", []int{3}, []string{"Close"}},
+		{"Var10", "Var", []int{3}, []string{"Close"}},
 	}
+
+	for _, indi := range indis {
+		indicator := IndiFactory(indi)
+		assert.NotNil(t, indicator, "Indicator should not be nil")
+	}
+
 }

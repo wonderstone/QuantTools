@@ -3,7 +3,10 @@ package dataprocessor
 import (
 	"encoding/csv"
 	"fmt"
+	"math"
 	"os"
+
+	"github.com/wonderstone/QuantTools/indicator"
 
 	//"path/filepath"
 	"strconv"
@@ -11,7 +14,8 @@ import (
 )
 
 // function to read csv file add some datas and write to a new csv file
-func CsvProcess(filedir string) (ok bool, err error) {
+func CsvProcess(filedir string, iis []indicator.IndiInfo) (ok bool, err error) {
+
 	// open the csv file
 	csvFile, err := os.Open(filedir)
 	if err != nil {
@@ -32,8 +36,20 @@ func CsvProcess(filedir string) (ok bool, err error) {
 		panic("整块读取csv文件出错")
 	}
 
+	// new header and new rows
+	newheader := header
+	newrows := make([][]string, 0)
+	// get the indicator slice for pointer to the indicator
+	is := make([]*indicator.IIndicator, 0)
+	for _, ii := range iis {
+		indi := indicator.IndiFactory(ii)
+		is = append(is, &indi)
+		newheader = append(newheader, ii.Name)
+	}
+
 	// iter the rows
 	for _, row := range rows {
+
 		// 需要根据最终csv字段进行调整
 		//dtstr := row[0]
 		// iterate the header backwards and get the data in a temp map
@@ -44,6 +60,20 @@ func CsvProcess(filedir string) (ok bool, err error) {
 				return false, fmt.Errorf("解析csv数据出错")
 			}
 		}
+		// iter the indicator slice and iis slice
+		newrow := row
+		for _, indi := range is {
+			if !ContainNaN(tmpmap) {
+				// load the data into the indicator
+				(*indi).LoadData(tmpmap)
+				// update the new row for the new csv file
+				newrow = append(newrow, strconv.FormatFloat((*indi).Eval(), 'f', 6, 64))
+			} else {
+				// update the new row with NaN
+				newrow = append(newrow, "NaN")
+			}
+		}
+		newrows = append(newrows, newrow)
 
 	}
 
@@ -57,13 +87,22 @@ func CsvProcess(filedir string) (ok bool, err error) {
 	// create a new csv writer
 	newcsvWriter := csv.NewWriter(newcsvFile)
 	// write the header
-	newcsvWriter.Write(header)
+	newcsvWriter.Write(newheader)
 	// write the data
-	for _, row := range rows {
+	for _, row := range newrows {
 		newcsvWriter.Write(row)
 	}
 	// flush the data
 	newcsvWriter.Flush()
 	return true, nil
 
+}
+
+func ContainNaN(m map[string]float64) bool {
+	for _, x := range m {
+		if math.IsNaN(x) {
+			return true
+		}
+	}
+	return false
 }
