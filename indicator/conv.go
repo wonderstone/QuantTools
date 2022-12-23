@@ -40,14 +40,14 @@ func (c *Conv) LoadData(data map[string]float64) {
 }
 
 // Eval evaluates the indicator
-func (v *Conv) Eval() float64 {
+func (c *Conv) Eval() float64 {
 	var sum float64
-	v.Ma.DQ = v.DQS
-	avgStock := v.Ma.Eval()
-	v.Ma.DQ = v.DQI
-	avgIndex := v.Ma.Eval()
-	for i := range v.DQS.Values() {
-		sum += (v.DQI.Values()[i].(float64) - avgStock) * (v.DQI.Values()[i].(float64) - avgIndex)
+	c.Ma.DQ = c.DQS
+	avgStock := c.Ma.Eval()
+	c.Ma.DQ = c.DQI
+	avgIndex := c.Ma.Eval()
+	for i := range c.DQS.Values() {
+		sum += (c.DQI.Values()[i].(float64) - avgStock) * (c.DQI.Values()[i].(float64) - avgIndex)
 	}
-	return sum / float64(v.DQI.Size())
+	return sum / float64(c.DQI.Size())
 }

@@ -27,6 +27,14 @@ func IndiFactory(ii IndiInfo) IIndicator {
 		return NewMA(ii.ParSlice, ii.InfoSlice)
 	case "Var":
 		return NewVar(ii.ParSlice, ii.InfoSlice)
+	case "EMA":
+		return NewEMA(ii.ParSlice, ii.InfoSlice)
+	case "BETA":
+		return NewBeta(ii.ParSlice, ii.InfoSlice)
+	case "Cov":
+		return NewConv(ii.ParSlice, ii.InfoSlice)
+	case "AD":
+		return NewAvgDev(ii.ParSlice, ii.InfoSlice)
 	default:
 		return nil
 	}
