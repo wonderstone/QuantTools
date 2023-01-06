@@ -14,6 +14,7 @@ import (
 
 // MA is the moving average indicator
 type MA struct {
+	Name     string
 	ParSlice []int
 	sum, lv  float64
 
@@ -23,8 +24,9 @@ type MA struct {
 }
 
 // NewMA returns a new MA indicator
-func NewMA(ParSlice []int, infoslice []string) *MA {
+func NewMA(Name string, ParSlice []int, infoslice []string) *MA {
 	return &MA{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQ:        cb.New(ParSlice[0]),
@@ -56,4 +58,8 @@ func (m *MA) EvalOld() float64 {
 
 func (m *MA) Eval() float64 {
 	return m.sum / float64(m.DQ.Size())
+}
+
+func (m *MA) GetName() string {
+	return m.Name
 }

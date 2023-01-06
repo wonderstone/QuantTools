@@ -16,6 +16,7 @@ import (
 
 // EMA is the moving average indicator
 type Ref struct {
+	Name     string
 	ParSlice []int
 	// info fields for indicator calculation
 	InfoSlice []string
@@ -23,8 +24,9 @@ type Ref struct {
 }
 
 // NewMA returns a new MA indicator
-func NewRef(ParSlice []int, infoslice []string) *Ref {
+func NewRef(Name string, ParSlice []int, infoslice []string) *Ref {
 	return &Ref{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQ:        cb.New(ParSlice[0]),
@@ -44,4 +46,9 @@ func (r *Ref) Eval() float64 {
 		return math.NaN()
 	}
 	return res.(float64)
+}
+
+// GetName returns the name of the indicator
+func (r *Ref) GetName() string {
+	return r.Name
 }

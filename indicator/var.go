@@ -15,6 +15,7 @@ import (
 
 // Var 方差指标
 type Var struct {
+	Name string
 	// Period int
 	ParSlice      []int
 	sum, lv, mean float64
@@ -26,9 +27,10 @@ type Var struct {
 }
 
 // NewVar returns a new Variance indicator
-func NewVar(ParSlice []int, infoslice []string) *Var {
-	tmpma := NewMA(ParSlice, infoslice)
+func NewVar(Name string, ParSlice []int, infoslice []string) *Var {
+	tmpma := NewMA("temp", ParSlice, infoslice)
 	return &Var{
+		Name: Name,
 		// Period: period,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
@@ -67,4 +69,9 @@ func (v *Var) EvalOld() float64 {
 }
 func (v *Var) Eval() float64 {
 	return (v.sum - float64(v.DQ.Size())*v.mean*v.mean) / float64(v.DQ.Size())
+}
+
+// Getname returns the name of the indicator
+func (v *Var) GetName() string {
+	return v.Name
 }

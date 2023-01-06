@@ -100,7 +100,7 @@ func main() {
 	ma2map := make(map[string]*indicator.MA)
 	// ** iter the target list
 	for _, stock := range rt.SInstrNames {
-		ma2map[stock] = indicator.NewMA([]int{2}, []string{"close"})
+		ma2map[stock] = indicator.NewMA("Ma2", []int{2}, []string{"close"})
 		// ** data preloading for indicators
 		ma2map[stock].LoadData(map[string]float64{"close": 1.0})
 		ma2map[stock].LoadData(map[string]float64{"close": 2.0})

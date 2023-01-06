@@ -14,7 +14,7 @@ import (
 )
 
 func TestEvalMA(t *testing.T) {
-	ma := NewMA([]int{3}, []string{"Close"})
+	ma := NewMA("MA3", []int{3}, []string{"Close"})
 
 	ma.LoadData(map[string]float64{"Close": 1.0})
 	fmt.Println(ma.EvalOld(), ma.Eval(), ma.DQ.Full())
@@ -38,7 +38,7 @@ func TestEvalMA(t *testing.T) {
 
 }
 func BenchmarkEvalOldMA(b *testing.B) {
-	ma := NewMA([]int{60}, []string{"Close"})
+	ma := NewMA("MA60", []int{60}, []string{"Close"})
 	for i := 0; i < 60; i++ {
 		ma.LoadData(map[string]float64{"Close": float64(i) + 1.0})
 	}
@@ -48,7 +48,7 @@ func BenchmarkEvalOldMA(b *testing.B) {
 }
 
 func BenchmarkEval(b *testing.B) { //迭代式
-	ma := NewMA([]int{60}, []string{"Close"})
+	ma := NewMA("MA60", []int{60}, []string{"Close"})
 	for i := 0; i < 60; i++ {
 		ma.LoadData(map[string]float64{"Close": float64(i) + 1.0})
 

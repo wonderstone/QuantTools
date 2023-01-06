@@ -15,6 +15,7 @@ import (
 
 // Conv is the Conv indicator
 type Conv struct {
+	Name      string
 	ParSlice  []int
 	InfoSlice []string
 	DQS       *cb.Queue
@@ -23,13 +24,14 @@ type Conv struct {
 }
 
 // NewConv returns a new Conv indicator
-func NewConv(ParSlice []int, infoslice []string) *Conv {
+func NewConv(Name string, ParSlice []int, infoslice []string) *Conv {
 	return &Conv{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQS:       cb.New(ParSlice[0]),
 		DQI:       cb.New(ParSlice[0]),
-		Ma:        NewMA(ParSlice, infoslice),
+		Ma:        NewMA("tempMA", ParSlice, infoslice),
 	}
 }
 
@@ -50,4 +52,9 @@ func (c *Conv) Eval() float64 {
 		sum += (c.DQI.Values()[i].(float64) - avgStock) * (c.DQI.Values()[i].(float64) - avgIndex)
 	}
 	return sum / float64(c.DQI.Size())
+}
+
+// GetName returns the name of the indicator
+func (c *Conv) GetName() string {
+	return c.Name
 }

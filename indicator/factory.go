@@ -16,6 +16,7 @@ type IndiInfo struct {
 }
 
 type IIndicator interface {
+	GetName() string
 	LoadData(data map[string]float64)
 	Eval() float64
 }
@@ -24,17 +25,17 @@ type IIndicator interface {
 func IndiFactory(ii IndiInfo) IIndicator {
 	switch ii.IndiType {
 	case "MA":
-		return NewMA(ii.ParSlice, ii.InfoSlice)
+		return NewMA(ii.Name, ii.ParSlice, ii.InfoSlice)
 	case "Var":
-		return NewVar(ii.ParSlice, ii.InfoSlice)
-	case "EMA":
-		return NewEMA(ii.ParSlice, ii.InfoSlice)
+		return NewVar(ii.Name, ii.ParSlice, ii.InfoSlice)
 	case "BETA":
-		return NewBeta(ii.ParSlice, ii.InfoSlice)
+		return NewBeta(ii.Name, ii.ParSlice, ii.InfoSlice)
 	case "Cov":
-		return NewConv(ii.ParSlice, ii.InfoSlice)
+		return NewConv(ii.Name, ii.ParSlice, ii.InfoSlice)
 	case "AD":
-		return NewAvgDev(ii.ParSlice, ii.InfoSlice)
+		return NewAvgDev(ii.Name, ii.ParSlice, ii.InfoSlice)
+	case "Ref":
+		return NewRef(ii.Name, ii.ParSlice, ii.InfoSlice)
 	default:
 		return nil
 	}

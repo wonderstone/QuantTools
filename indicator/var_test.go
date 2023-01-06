@@ -14,7 +14,7 @@ import (
 )
 
 func TestEvalVar(t *testing.T) {
-	vari := NewVar([]int{3}, []string{"Close"})
+	vari := NewVar("Var3", []int{3}, []string{"Close"})
 
 	vari.LoadData(map[string]float64{"Close": 1.0})
 	fmt.Println(vari.Eval(), vari.DQ.Full())

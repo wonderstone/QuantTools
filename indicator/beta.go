@@ -15,6 +15,7 @@ import (
 
 // Beta is the Beta indicator
 type Beta struct {
+	Name     string
 	ParSlice []int
 	// info fields for indicator calculation
 	InfoSlice []string
@@ -25,14 +26,15 @@ type Beta struct {
 }
 
 // NewBeta returns a new BetaCoefficient indicator
-func NewBeta(ParSlice []int, infoslice []string) *Beta {
+func NewBeta(Name string, ParSlice []int, infoslice []string) *Beta {
 	return &Beta{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQS:       cb.New(ParSlice[0]),
 		DQI:       cb.New(ParSlice[0]),
-		Conv:      NewConv(ParSlice, infoslice),
-		Var:       NewVar(ParSlice, infoslice),
+		Conv:      NewConv("TempCov", ParSlice, infoslice),
+		Var:       NewVar("TempVar", ParSlice, infoslice),
 	}
 }
 
@@ -49,4 +51,9 @@ func (b *Beta) Eval() float64 {
 	b.Conv.DQI = b.DQI
 	b.Var.DQ = b.DQI
 	return b.Conv.Eval() / b.Var.Eval()
+}
+
+// GetName returns the name of the indicator
+func (b *Beta) GetName() string {
+	return b.Name
 }

@@ -22,7 +22,14 @@ func TestEvalEMA(t *testing.T) {
 	fmt.Println(e.ptoday, e.Eval())
 	e.LoadData(map[string]float64{"Close": 4.0})
 	actual := e.Eval()
+
+	fmt.Println(e.ptoday, e.Eval())
+	fmt.Println(e.ptoday, e.Eval())
+	fmt.Println(e.ptoday, e.Eval())
+	fmt.Println(e.ptoday, e.Eval())
+
 	fmt.Println(e.ptoday, actual)
+
 	actual_3 := roundDigits(actual, 3)
 
 	if actual_3 != float64(1.832) {

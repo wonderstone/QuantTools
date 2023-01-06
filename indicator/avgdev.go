@@ -17,6 +17,7 @@ import (
 
 // AvgDev is the AvgDev indicator
 type AvgDev struct {
+	Name      string
 	ParSlice  []int
 	InfoSlice []string
 	DQ        *cb.Queue
@@ -24,10 +25,11 @@ type AvgDev struct {
 }
 
 // NewAvgDev returns a new AvgDev indicator
-func NewAvgDev(ParSlice []int, infoslice []string) *AvgDev {
+func NewAvgDev(Name string, ParSlice []int, infoslice []string) *AvgDev {
 	// * 嵌套指标infoslice不同时，记得单独处理
-	tmpma := NewMA(ParSlice, infoslice)
+	tmpma := NewMA("TempMA", ParSlice, infoslice)
 	return &AvgDev{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		DQ:        tmpma.DQ,
@@ -48,4 +50,9 @@ func (a *AvgDev) Eval() float64 {
 		devSum += math.Abs(v.(float64) - mean)
 	}
 	return devSum / float64(a.DQ.Size())
+}
+
+// GetName returns the name of the indicator
+func (a *AvgDev) GetName() string {
+	return a.Name
 }

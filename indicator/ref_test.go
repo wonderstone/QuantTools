@@ -14,7 +14,7 @@ import (
 )
 
 func TestEvalRef(t *testing.T) {
-	ref := NewRef([]int{3}, []string{"Close"})
+	ref := NewRef("Ref3", []int{3}, []string{"Close"})
 
 	ref.LoadData(map[string]float64{"Close": 1.0})
 	fmt.Println(ref.Eval())
