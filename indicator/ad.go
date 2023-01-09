@@ -5,10 +5,12 @@
 
 // author:  Maminghui (Digital Office Product Department #2)
 // revisor:
+
 package indicator
 
 //AD calculation without period (ParSlice[0])
 type AD struct {
+	Name                               string
 	ParSlice                           []int
 	high, low, closing, volume, result float64
 
@@ -16,8 +18,9 @@ type AD struct {
 	InfoSlice []string //[high,low,closing,volume]
 }
 
-func NewAD(ParSlice []int, infoslice []string) *AD {
+func NewAD(Name string, ParSlice []int, infoslice []string) *AD {
 	return &AD{
+		Name:      Name,
 		ParSlice:  ParSlice, //period
 		InfoSlice: infoslice,
 	}
@@ -35,4 +38,7 @@ func (ad *AD) Eval() float64 {
 	ad.result += float64(ad.volume) * (((ad.closing - ad.low) - (ad.high - ad.closing)) / (ad.high - ad.low))
 
 	return ad.result
+}
+func (ad *AD) GetName() string {
+	return ad.Name
 }

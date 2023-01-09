@@ -6,7 +6,7 @@ import (
 )
 
 func TestEvalVWMA(t *testing.T) {
-	v := NewVWMA([]int{3}, []string{"closing", "volume"})
+	v := NewVWMA("VWMA3",[]int{3}, []string{"closing", "volume"})
 	v.LoadData(map[string]float64{"closing": 20, "volume": 10})
 	fmt.Println(v.Eval())
 	v.LoadData(map[string]float64{"closing": 10, "volume": 20})

@@ -5,6 +5,7 @@
 
 // author:  Maminghui (Digital Office Product Department #2)
 // revisor:
+
 package indicator
 
 import (
@@ -12,6 +13,7 @@ import (
 )
 
 type Sum struct {
+	Name string
 	ParSlice           []int
 	p, sum, period, lv float64
 
@@ -20,8 +22,9 @@ type Sum struct {
 	DQ        *cb.Queue
 }
 
-func NewSum(ParSlice []int, infoslice []string) *Sum {
+func NewSum(Name string,ParSlice []int, infoslice []string) *Sum {
 	return &Sum{
+		Name: Name,
 		ParSlice:  ParSlice, //period
 		InfoSlice: infoslice,
 		period:    float64(ParSlice[0]),
@@ -46,4 +49,7 @@ func (s *Sum) LoadData(data map[string]float64) {
 func (s *Sum) Eval() float64 {
 	result := s.sum
 	return result
+}
+func (s *Sum) GetName() string {
+	return s.Name
 }

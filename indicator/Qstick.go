@@ -5,6 +5,7 @@
 
 // author:  Maminghui (Digital Office Product Department #2)
 // revisor:
+
 package indicator
 
 import (
@@ -12,6 +13,7 @@ import (
 )
 
 type Qstick struct {
+	Name string
 	ParSlice                          []int
 	closing, opening, period, sum, lv float64
 
@@ -22,8 +24,9 @@ type Qstick struct {
 }
 
 // NewMA returns a new MA indicator
-func NewQstick(ParSlice []int, infoslice []string) *Qstick {
+func NewQstick(Name string,ParSlice []int, infoslice []string) *Qstick {
 	return &Qstick{
+		Name: Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice, //[closing,opening]
 		period:    float64(ParSlice[0]),
@@ -48,4 +51,7 @@ func (qs *Qstick) LoadData(data map[string]float64) {
 func (qs *Qstick) Eval() float64 {
 
 	return qs.sum / qs.period
+}
+func (qs *Qstick) GetName() string {
+	return qs.Name
 }

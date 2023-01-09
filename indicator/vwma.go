@@ -11,6 +11,7 @@ import (
 )
 
 type VWMA struct {
+	Name string
 	ParSlice  []int
 	InfoSlice []string //[closing,volume]
 	period int
@@ -18,8 +19,9 @@ type VWMA struct {
 	DQ       *cb.Queue
 }
 
-func NewVWMA(ParSlice []int, infoslice []string) *VWMA {
+func NewVWMA(Name string,ParSlice []int, infoslice []string) *VWMA {
 	return &VWMA{
+		Name: Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
 		period: ParSlice[0],
@@ -36,4 +38,7 @@ func (v *VWMA) LoadData(data map[string]float64) {
 func (v *VWMA) Eval() float64 {
 	result:=(v.period+int(v.closing*v.volume))/(v.period+int(v.volume))
 	return float64(result)
+}
+func (v *VWMA) GetName() string {
+	return v.Name
 }

@@ -4,7 +4,6 @@
 // storage and retrieval system, without the prior written permission of West Securities ltd.
 
 // author:  Maminghui (Digital Office Product Department #2)
-// revisor:
 package indicator
 
 import (
@@ -13,17 +12,15 @@ import (
 )
 
 func TestEvalBOP(t *testing.T) {
-	bop := NewBOP([]string{"closing", "opening", "high", "low"})
+	bop := NewBOP("BOP", []string{"closing", "opening", "high", "low"})
 	bop.LoadData(map[string]float64{"closing": 20, "opening": 10, "high": 40, "low": 4})
 	fmt.Println(bop.Eval())
 	bop.LoadData(map[string]float64{"closing": 15, "opening": 20, "high": 25, "low": 10})
-	actual := bop.Eval()
-	fmt.Println(actual)
-	actual_2 := roundDigits(actual, 2)
+	fmt.Println(bop.Eval())
 
-	if actual_2 != float64(-0.33) {
-		fmt.Println("ad.Eval() :  ", actual_2)
-		t.Error("Expected -0.33, got ", actual_2)
+	if roundDigits(bop.Eval(), 2) != float64(-0.33) {
+		fmt.Println("bop.Eval() :  ", bop.Eval())
+		t.Error("Expected -0.33, got ", bop.Eval())
 	}
 
 }

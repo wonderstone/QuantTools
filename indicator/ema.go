@@ -5,6 +5,7 @@
 
 // author:  Maminghui (Digital Office Product Department #2)
 // revisor:
+
 package indicator
 
 import (
@@ -14,6 +15,7 @@ import (
 
 // EMA is the moving average indicator
 type EMA struct {
+	Name     string
 	ParSlice           []int
 	ptoday, lv, k, sum float64
 
@@ -22,8 +24,9 @@ type EMA struct {
 	DQ        *cb.Queue
 }
 
-func NewEMA(ParSlice []int, infoslice []string) *EMA {
+func NewEMA(Name string,ParSlice []int, infoslice []string) *EMA {
 	return &EMA{
+		Name:      Name,
 		ParSlice:  ParSlice, //period
 		InfoSlice: infoslice,
 		k:         2.0 / (float64(ParSlice[0]) + 1.0),
@@ -56,5 +59,9 @@ func (e *EMA) Eval() float64 {
 		result[1] = (e.ptoday * e.k) + (result[0] * float64(1-e.k))
 		e.lv = result[1]
 	}
-	return result[1]
+	ema2:=result[1]
+	return ema2
+}
+func (e *EMA) GetName() string {
+	return e.Name
 }

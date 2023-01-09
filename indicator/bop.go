@@ -4,18 +4,19 @@
 // storage and retrieval system, without the prior written permission of West Securities ltd.
 
 // author:  Maminghui (Digital Office Product Department #2)
-// revisor:
 package indicator
 
 type BOP struct {
+	Name                        string
 	closing, opening, high, low float64
 
 	// info fields for indicator calculation
 	InfoSlice []string //[closing,opening,high,low]
 }
 
-func NewBOP(infoslice []string) *BOP {
+func NewBOP(Name string, infoslice []string) *BOP {
 	return &BOP{
+		Name:      Name,
 		InfoSlice: infoslice,
 	}
 }
@@ -26,6 +27,9 @@ func (bop *BOP) LoadData(data map[string]float64) {
 	bop.low = data[bop.InfoSlice[3]]
 }
 func (bop *BOP) Eval() float64 {
-	result := (bop.closing - bop.opening) / (bop.high - bop.low)
-	return result
+	//result := (bop.closing-bop.opening)/(bop.high- bop.low)
+	return (bop.closing - bop.opening) / (bop.high - bop.low)
+}
+func (bop *BOP) GetName() string {
+	return bop.Name
 }

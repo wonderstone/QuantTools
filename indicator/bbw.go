@@ -20,29 +20,34 @@ import (
 )
 
 type BBW struct {
-	ParSlice  []int
-	InfoSlice []string //[upperBand, middleBand, lowerBand]
+	Name                             string
+	ParSlice                         []int
+	InfoSlice                        []string //[upperBand, middleBand, lowerBand]
 	upperBand, middleBand, lowerBand float64
-	DQ *cb.Queue
+	DQ                               *cb.Queue
 }
 
-func NewBBW(ParSlice []int, infoslice []string) *BBW {
+func NewBBW(Name string, ParSlice []int, infoslice []string) *BBW {
 	return &BBW{
+		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
-		DQ:       cb.New(ParSlice[0]),
+		DQ:        cb.New(ParSlice[0]),
 	}
 }
 
 // LoadData loads 1 tick info datas into the indicator
 func (b *BBW) LoadData(data map[string]float64) {
-	b.upperBand=data[b.InfoSlice[0]]
-	b.middleBand=data[b.InfoSlice[1]]
-	b.lowerBand=data[b.InfoSlice[2]]
+	b.upperBand = data[b.InfoSlice[0]]
+	b.middleBand = data[b.InfoSlice[1]]
+	b.lowerBand = data[b.InfoSlice[2]]
 	b.DQ.Enqueue((b.upperBand - b.lowerBand) / b.middleBand)
 }
 
 func (b *BBW) Eval() float64 {
-	bandWidth:=b.DQ.End
+	bandWidth := b.DQ.End
 	return float64(bandWidth)
+}
+func (b *BBW) GetName() string {
+	return b.Name
 }
