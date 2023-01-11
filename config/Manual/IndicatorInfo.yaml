@@ -1,0 +1,14 @@
+-
+  Name: MA10
+  IndiType: MA
+  ParSlice:
+    - 3
+  InfoSlice:
+    - close
+-
+  Name: Var10
+  IndiType: Var
+  ParSlice:
+    - 10
+  InfoSlice:
+    - close

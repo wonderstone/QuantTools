@@ -28,3 +28,7 @@ func TestFactory(t *testing.T) {
 	}
 
 }
+func TestGetIndiInfoSlice(t *testing.T) {
+	indis := GetIndiInfoSlice("../config/Manual/")
+	assert.NotNil(t, indis, "Indicator should not be nil")
+}

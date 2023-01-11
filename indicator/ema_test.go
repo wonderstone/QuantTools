@@ -1,27 +1,28 @@
 package indicator
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestEvalEMA(t *testing.T) {
-	e := NewEMA("EMA12",[]int{12}, []string{"Close"}) 
-	e.LoadData(map[string]float64{"Close": 1.0})
-	fmt.Println(e.ptoday,e.Eval())
-	e.LoadData(map[string]float64{"Close": 2.0})
-	fmt.Println(e.ptoday,e.Eval())
-	e.LoadData(map[string]float64{"Close": 3.0})
-	fmt.Println(e.ptoday,e.Eval())
-	e.LoadData(map[string]float64{"Close": 4.0})
-	actual:=e.Eval()
-	fmt.Println(e.ptoday,actual)
-	actual_3 := roundDigits(actual,3)
-	
+	e := NewEMA("EMA3", []int{3}, []string{"Close"})
+	e.LoadData(map[string]float64{"Close": 8996.96})
+	fmt.Println(e.Eval())
+	e.LoadData(map[string]float64{"Close": 9003.19})
+	fmt.Println(e.Eval())
+	e.LoadData(map[string]float64{"Close": 9010.41})
+	fmt.Println(e.Eval())
+	e.LoadData(map[string]float64{"Close": 9008.07})
+	fmt.Println(e.Eval())
+	e.LoadData(map[string]float64{"Close": 9018.03})
+	fmt.Println(e.Eval())
+	e.LoadData(map[string]float64{"Close": 9009.80})
+	fmt.Println(e.Eval())
 
-	if actual_3 != float64(1.832) {
-		fmt.Println("e.Eval() :  ", actual_3)
-		t.Error("Expected 1.832, got ", actual_3) 
+	if roundDigits(e.Eval(), 2) != 9011.07 {
+		fmt.Println("e.Eval() :  ", e.Eval())
+		t.Error("Expected 9012.34, got ", e.Eval())
 	}
 
 }

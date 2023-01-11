@@ -43,6 +43,16 @@ func (c *configer) Unmarshal() error {
 	return nil
 }
 
+// Unmarshal method for slice
+func (c *configer) UnmarshalSlice() ([]interface{}, error) {
+	var res []interface{}
+	err := yaml.Unmarshal(c.content, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 // GetContent returns the content of the config file
 func (c *configer) GetContent() map[string]interface{} {
 	return c.unmarshaledContent
