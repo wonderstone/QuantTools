@@ -9,6 +9,7 @@
 package indicator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,11 +25,13 @@ func TestFactory(t *testing.T) {
 
 	for _, indi := range indis {
 		indicator := IndiFactory(indi)
+		fmt.Println(indicator)
 		assert.NotNil(t, indicator, "Indicator should not be nil")
 	}
 
 }
 func TestGetIndiInfoSlice(t *testing.T) {
 	indis := GetIndiInfoSlice("../config/Manual/")
+	fmt.Println(indis)
 	assert.NotNil(t, indis, "Indicator should not be nil")
 }

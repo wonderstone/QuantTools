@@ -14,8 +14,12 @@ func TestFakeGetHistoryData(t *testing.T) {
 	fmt.Println("dir:", dir)
 
 	d, s := FakeGetHistoryData(dir)
-	fmt.Println("d:", d)
-	fmt.Println("s:", s)
+	// fmt.Println("d:", d)
+	// fmt.Println("s:", s)
+	for _, v := range s[:30] {
+		fmt.Println(v, d[v])
+
+	}
 	assert.Equal(t, len(s), 4071, "should be 4071")
 
 }

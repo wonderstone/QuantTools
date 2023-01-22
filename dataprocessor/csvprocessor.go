@@ -2,6 +2,7 @@ package dataprocessor
 
 import (
 	"encoding/csv"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -99,6 +100,7 @@ func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) (ok bo
 				newrow = append(newrow, "NaN")
 			}
 		}
+		fmt.Println(newrow)
 		newrows = append(newrows, newrow)
 
 	}
