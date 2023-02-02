@@ -11,7 +11,7 @@ import (
 )
 
 func TestCsvReader(t *testing.T) {
-	instSIDS := []string{"SZ000058", "SH600409"}
+	instSIDS := []string{"sz000058", "sh600409"}
 	indiSNames := []string{"open", "close"}
 
 	instFIDS := []string{"a1409"}
@@ -45,9 +45,9 @@ func TestCsvReader(t *testing.T) {
 	}
 
 	fmt.Println("Stock data finishe!")
-	fmt.Println(bcm.BarCMap["2017/10/9 9:55"].Stockdata["SZ000058"].IndiDataMap["ma10"])
+	fmt.Println(bcm.BarCMap["2017/10/9 9:55"].Stockdata["sz000058"].IndiDataMap["ma10"])
 
-	assert.Equal(t, math.IsNaN(bcm.BarCMap["2017/10/9 9:55"].Stockdata["SZ000058"].IndiDataMap["ma10"]), true)
+	assert.Equal(t, math.IsNaN(bcm.BarCMap["2017/10/9 9:55"].Stockdata["sz000058"].IndiDataMap["ma10"]), true)
 
 	FPfiles, err := ListDir(dirFPth, "csv")
 	if err != nil {

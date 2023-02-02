@@ -37,15 +37,19 @@ type BackTest struct {
 	EndDate   string
 	// Section for Strategy Targets and info fields
 	SInstrNames    []string
-	SIndiNames     []string
-	SCsvDatafields []string
+	SIndiNames     []string // 本轮参与计算的指标
+	SCsvDatafields []string // 服务器提供指标
+	SADfields      []string // 本地运算添加指标
 	FInstrNames    []string
 	FIndiNames     []string
 	FCsvDatafields []string
+	FADfields      []string
 	// Section for CSV data dir
-	StockDataDir      string
-	FuturesDataDir    string
-	FuturesMTMDataDir string
+	StockDataDir        string
+	StockDataDirFinal   string
+	FuturesDataDir      string
+	FuturesDataDirFinal string
+	FuturesMTMDataDir   string
 	// Section for ContractProp
 	ConfName  string
 	CPDataDir string
@@ -74,9 +78,11 @@ type RealTime struct {
 	SInstrNames []string
 	SIndiNames  []string
 	SRegisterDF []string
+	SADfields   []string
 	FInstrNames []string
 	FIndiNames  []string
 	FRegisterDF []string
+	FADfields   []string
 	// Section for ContractProp
 	ConfName  string
 	CPDataDir string
@@ -92,8 +98,8 @@ type RealTime struct {
 }
 
 func NewBackTest(SInitVal float64, FInitVale float64, BDt string, EDt string,
-	SInstrNs []string, SIndiNs []string, SCDtfields []string, FInstrNs []string, FIndiNs []string, FCDtfields []string,
-	SDtDir string, FDtDir string, FMTMDtDir string, ConfName string, CPDataDir string, MatcherSlpg4S float64, MatcherSlpg4F float64,
+	SInstrNs []string, SIndiNs []string, SCDtfields []string, SADfields []string, FInstrNs []string, FIndiNs []string, FCDtfields []string, FADfields []string,
+	SDtDir string, SDtDirFinal string, FDtDir string, FDtDirFinal string, FMTMDtDir string, ConfName string, CPDataDir string, MatcherSlpg4S float64, MatcherSlpg4F float64,
 	StrategyMod string, SMGEPType string, SMName string, SMDataDir string, RiskFR float64, PAType string) BackTest {
 	return BackTest{
 		// 所有项目均为用户设置
@@ -107,13 +113,17 @@ func NewBackTest(SInitVal float64, FInitVale float64, BDt string, EDt string,
 		SInstrNames:    SInstrNs,
 		SIndiNames:     SIndiNs,
 		SCsvDatafields: SCDtfields,
+		SADfields:      SADfields,
 		FInstrNames:    FInstrNs,
 		FIndiNames:     FIndiNs,
 		FCsvDatafields: FCDtfields,
+		FADfields:      FADfields,
 		// Section for CSV data dir
-		StockDataDir:      SDtDir,
-		FuturesDataDir:    FDtDir,
-		FuturesMTMDataDir: FMTMDtDir,
+		StockDataDir:        SDtDir,
+		StockDataDirFinal:   SDtDirFinal,
+		FuturesDataDir:      FDtDir,
+		FuturesDataDirFinal: FDtDirFinal,
+		FuturesMTMDataDir:   FMTMDtDir,
 		// Section for ContractProp
 		ConfName:  ConfName,
 		CPDataDir: CPDataDir,
@@ -155,6 +165,11 @@ func NewBackTestConfig(sec string, dir string) BackTest {
 	for _, v := range tmpMap["scsvdatafields"].([]interface{}) {
 		scsvdatafields = append(scsvdatafields, v.(string))
 	}
+	var sadfields []string
+	for _, v := range tmpMap["sadfields"].([]interface{}) {
+		sadfields = append(sadfields, v.(string))
+	}
+
 	var finstrnames []string
 	for _, v := range tmpMap["finstrnames"].([]interface{}) {
 		finstrnames = append(finstrnames, v.(string))
@@ -167,16 +182,21 @@ func NewBackTestConfig(sec string, dir string) BackTest {
 	for _, v := range tmpMap["fcsvdatafields"].([]interface{}) {
 		fcsvdatafields = append(fcsvdatafields, v.(string))
 	}
+	var fadfields []string
+	for _, v := range tmpMap["fadfields"].([]interface{}) {
+		fadfields = append(fadfields, v.(string))
+	}
+
 	return NewBackTest(tmpMap["stockinitvalue"].(float64), tmpMap["futuresinitvalue"].(float64),
 		tmpMap["begindate"].(string), tmpMap["enddate"].(string),
-		sinstrnames, sindinames, scsvdatafields, finstrnames, findinames, fcsvdatafields,
-		tmpMap["stockdatadir"].(string), tmpMap["futuresdatadir"].(string), tmpMap["futuresmtmdatadir"].(string),
+		sinstrnames, sindinames, scsvdatafields, sadfields, finstrnames, findinames, fcsvdatafields, fadfields,
+		tmpMap["stockdatadir"].(string), tmpMap["stockdatadirfinal"].(string), tmpMap["futuresdatadir"].(string), tmpMap["futuresdatadirfinal"].(string), tmpMap["futuresmtmdatadir"].(string),
 		tmpMap["confname"].(string), tmpMap["cpdatadir"].(string), tmpMap["matcherslippage4s"].(float64), tmpMap["matcherslippage4f"].(float64),
 		tmpMap["strategymodule"].(string), tmpMap["smgeptype"].(string), tmpMap["smname"].(string), tmpMap["smdatadir"].(string),
 		tmpMap["riskfreerate"].(float64), tmpMap["patype"].(string))
 }
 
-func NewRealTime(info map[string]interface{}, va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, SRDtfields []string, FInstrNs []string, FIndiNs []string, FRDtfields []string,
+func NewRealTime(info map[string]interface{}, va *virtualaccount.VAcct, SInstrNs []string, SIndiNs []string, SRDtfields []string, SADfields []string, FInstrNs []string, FIndiNs []string, FRDtfields []string, FADfields []string,
 	ConfName string, CPDataDir string, cpm cp.CPMap, MatcherSlpg4S float64, MatcherSlpg4F float64,
 	StrategyMod string, SMGEPType string, SMName string, SMDataDir string) RealTime {
 	return RealTime{
@@ -188,9 +208,11 @@ func NewRealTime(info map[string]interface{}, va *virtualaccount.VAcct, SInstrNs
 		SInstrNames: SInstrNs,
 		SIndiNames:  SIndiNs,
 		SRegisterDF: SRDtfields,
+		SADfields:   SADfields,
 		FInstrNames: FInstrNs,
 		FIndiNames:  FIndiNs,
 		FRegisterDF: FRDtfields,
+		FADfields:   FADfields,
 		// Section for ContractProp
 		ConfName:  ConfName,
 		CPDataDir: CPDataDir,
@@ -219,11 +241,13 @@ func NewRealTimeConfig(dir string, filename string, info map[string]interface{},
 	}
 
 	SInstrNs := c.GetStringSlice("DataFields.sinstrnames")
-	SIndiNs := c.GetStringSlice("AFields.SIndiNmsAfter")
+	SIndiNs := c.GetStringSlice("DataFields.sindinames")
 	SRDtfields := c.GetStringSlice("DataFields.scsvdatafields")
+	SADfields := c.GetStringSlice("DataFields.sadfields")
 	FInstrNs := c.GetStringSlice("DataFields.finstrnames")
 	FIndiNs := c.GetStringSlice("DataFields.findinames")
 	FRDtfields := c.GetStringSlice("DataFields.fcsvdatafields")
+	FADfields := c.GetStringSlice("DataFields.fadfields")
 	ConfName := c.GetString("ContractProp.ConfName")
 	CPDataDir := c.GetString("ContractProp.CPDataDir")
 
@@ -234,7 +258,7 @@ func NewRealTimeConfig(dir string, filename string, info map[string]interface{},
 	SMName := c.GetString("StgModel.SMName")
 	SMDataDir := c.GetString("StgModel.SMDataDir")
 	cpm := cp.NewCPMap("ContractProp.yaml", "./config/Manual/")
-	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, FInstrNs, FIndiNs, FRDtfields, ConfName, CPDataDir, cpm,
+	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, SADfields, FInstrNs, FIndiNs, FRDtfields, FADfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
 
@@ -261,11 +285,11 @@ func (BT *BackTest) GetStrategy(sec string, dir string, tag string) strategyModu
 
 // 1. 准备数据
 func (BT *BackTest) PrepareData() {
-	sfilemap := getFileMap(BT.StockDataDir)
+	sfilemap := getFileMap(BT.StockDataDirFinal)
 	if len(sfilemap) != len(BT.SInstrNames) && len(BT.SInstrNames) != 0 {
 		panic("股票操作标的数与数据文件个数不匹配")
 	}
-	ffilemap := getFileMap(BT.FuturesDataDir)
+	ffilemap := getFileMap(BT.FuturesDataDirFinal)
 	if len(ffilemap) != len(BT.FInstrNames) && len(BT.FInstrNames) != 0 {
 		panic("期货操作标的数与数据文件个数不匹配")
 	}
@@ -273,7 +297,7 @@ func (BT *BackTest) PrepareData() {
 	BT.BCM = dataprocessor.NewBarCM(BT.SInstrNames, BT.SIndiNames, BT.FInstrNames, BT.FIndiNames, BT.BeginDate, BT.EndDate)
 	// 读取股票数据
 	if len(BT.SInstrNames) != 0 {
-		Sfiles, err := dataprocessor.ListDir(BT.StockDataDir, "csv")
+		Sfiles, err := dataprocessor.ListDir(BT.StockDataDirFinal, "csv")
 		if err != nil {
 			panic(err)
 		}
@@ -284,7 +308,7 @@ func (BT *BackTest) PrepareData() {
 
 	// 读取期货数据
 	if len(BT.FInstrNames) != 0 {
-		Ffiles, err := dataprocessor.ListDir(BT.FuturesDataDir, "csv")
+		Ffiles, err := dataprocessor.ListDir(BT.FuturesDataDirFinal, "csv")
 		if err != nil {
 			panic(err)
 		}
@@ -308,8 +332,12 @@ func (BT *BackTest) PrepareData() {
 		BT.BCM.BarCMapkeydts = append(BT.BCM.BarCMapkeydts, mapkeydt)
 	}
 	sort.Slice(BT.BCM.BarCMapkeydts, func(i, j int) bool {
-		dti, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[i])
-		dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
+		// 按照VDS规定格式解析时间
+		// tm, err := time.Parse("2006.01.02T15:04:05.000", "2023.01.18T09:35:00.000")
+		// dti, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[i])
+		// dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
+		dti, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[i])
+		dtj, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[j])
 		return dti.Before(dtj)
 	})
 }
@@ -340,11 +368,11 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 					if debug {
 						// this part is for test only
 						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
-							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
+							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["Open"]).
 							Msg("Match details")
 					}
 					VAcct.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
-					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
+					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["Open"], mapkeydt)
 					//
 					// tmpOrderRes.IsExecuted = true
 					VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
@@ -412,14 +440,14 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 		if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 {
 			for instID, barC := range BCM.BarCMap[mapkeydt].Stockdata {
 				if !strategyModule.ContainNaN(barC.IndiDataMap) {
-					VAcct.SAcct.ActOnUpdateMI(mapkeydt, instID, barC.IndiDataMap["close"])
+					VAcct.SAcct.ActOnUpdateMI(mapkeydt, instID, barC.IndiDataMap["Close"])
 					// DCE: debug info
 					if debug {
 						// this part is for test only
 						log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).
-							Float64("AccountVal", VAcct.SAcct.MktVal).Float64("close", barC.IndiDataMap["close"]).
-							Float64("open", barC.IndiDataMap["open"]).Float64("high", barC.IndiDataMap["high"]).
-							Float64("vol", barC.IndiDataMap["vol"]).Float64("ma1", barC.IndiDataMap["ma1"]).
+							Float64("AccountVal", VAcct.SAcct.MktVal).Float64("Close", barC.IndiDataMap["Close"]).
+							Float64("Open", barC.IndiDataMap["Open"]).Float64("High", barC.IndiDataMap["High"]).
+							Float64("Volume", barC.IndiDataMap["Volume"]).
 							Str("Target", instID).
 							Msg("Data")
 					}
@@ -478,7 +506,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 	// 期货账户开启goroutine 用于接收mc数据 并更新账户
 	go RT.ActOnCM(mc)
 	// 2.0 defer 将va数据更新写入到realtime.yaml中
-	defer exporter.ReplaceVA("./config/Manual/", "realtime.yaml", *RT.VA)
+	defer exporter.ReplaceVA("./", "realtime.yaml", *RT.VA)
 
 	// 3.0 dataprocessor中RealTimeProcess
 	var lastdatetime string
@@ -498,7 +526,7 @@ func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[str
 					if debug {
 						// this part is for test only
 						log.Info().Str("Account UUID", RT.VA.SAcct.UUID).Str("TimeStamp", lastdatetime).
-							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["open"]).
+							Str("Target", tmpOrderRes.StockOrderS[i].InstID).Float64("MatchPrice", matchinfo.IndiDataMap["Open"]).
 							Msg("Match details")
 					}
 					// 采用本bar的open价格进行撮合

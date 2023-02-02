@@ -14,12 +14,15 @@ import (
 )
 
 // function with dir path to get all files and CsvProcess them one by one and output to the targetdir
-func CsvProcessDir(dirpath string, targetdir string, iis []indicator.IndiInfo) (ok bool, err error) {
+func CsvProcessDir(dirpath string, targetdir string, iis []indicator.IndiInfo) bool {
 	// get all the files in the dirpath
 	files, err := filepath.Glob(dirpath + "/*.csv")
 	if err != nil {
 		panic("读取文件夹出错")
-		// return false, fmt.Errorf("读取文件夹出错")
+	}
+	// if files is empty, panic
+	if len(files) == 0 {
+		panic("文件夹异常 请检查 @" + dirpath)
 	}
 	// iter the files and process them one by one
 	for _, file := range files {
@@ -28,33 +31,28 @@ func CsvProcessDir(dirpath string, targetdir string, iis []indicator.IndiInfo) (
 		// get the target file name
 		targetfile := filepath.Join(targetdir, filename)
 		// process the file
-		_, err := CsvProcess(file, targetfile, iis)
-		if err != nil {
+		isok := CsvProcess(file, targetfile, iis)
+		if !isok {
 			panic("处理csv文件出错")
-			// return false, fmt.Errorf("处理csv文件出错")
 		}
 	}
-	return true, nil
+	return true
 }
 
 // function to read csv file add some datas and write to a new csv file
-func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) (ok bool, err error) {
+func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) bool {
 
 	// open the csv file
 	csvFile, err := os.Open(fpath)
 	if err != nil {
 		panic("建立csv文件handler出错")
-		// return false, fmt.Errorf("建立csv文件handler出错")
 	}
 	defer csvFile.Close()
-	// get the instID from the file name
-	//instSID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
-	// 逐行读取csv文件
+	// 读取csv文件
 	csvReader := csv.NewReader(csvFile)
 	header, err := csvReader.Read()
 	if err != nil {
 		panic("第一行读取csv文件头出错")
-		// return false, fmt.Errorf("第一行读取csv文件头出错")
 	}
 	// store the data
 	rows, err := csvReader.ReadAll()
@@ -117,7 +115,6 @@ func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) (ok bo
 	newcsvFile, err := os.Create(targetdir)
 	if err != nil {
 		panic("创建新csv文件出错")
-		// return false, fmt.Errorf("创建新csv文件出错")
 	}
 	defer newcsvFile.Close()
 	// create a new csv writer
@@ -130,7 +127,7 @@ func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) (ok bo
 	}
 	// flush the data
 	newcsvWriter.Flush()
-	return true, nil
+	return true
 
 }
 

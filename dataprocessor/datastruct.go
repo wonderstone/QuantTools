@@ -65,11 +65,11 @@ type BarCM struct {
 }
 
 func NewBarCM(instSIDS []string, IndiSNames []string, instFIDS []string, IndiFNames []string, beginDate string, endDate string) *BarCM {
-	bd, error := time.Parse("2006/1/2 15:04", beginDate)
+	bd, error := time.Parse("2006.01.02T15:04:05.000", beginDate)
 	if error != nil {
 		panic("beginDate parse error")
 	}
-	ed, error := time.Parse("2006/1/2 15:04", endDate)
+	ed, error := time.Parse("2006.01.02T15:04:05.000", endDate)
 	if error != nil {
 		panic("endDate parse error")
 	}

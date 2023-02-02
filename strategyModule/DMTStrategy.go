@@ -4,7 +4,7 @@ package strategyModule
 // one expression for one strategy, therefore one market for one strategy
 import (
 	"math"
-	"strings"
+	// "strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
@@ -100,9 +100,15 @@ func NewDMTStrategyFromConfig(sec string, dir string) DMTStrategy {
 }
 
 // getTimeValue get the time value which is a stirng fromt a time string
+// func getTimeValue(timeString string) string {
+// 	tmp := strings.Fields(timeString)
+// 	return tmp[1]
+// }
+
 func getTimeValue(timeString string) string {
-	tmp := strings.Fields(timeString)
-	return tmp[1]
+	// get the time value
+	timeValue := timeString[11:16]
+	return timeValue
 }
 
 // change the dmt.stimeCondition and dmt.ftimeCondition
@@ -257,9 +263,9 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 			// 判断是否数据为NaN，如果为NaN，则跳过
 			if !ContainNaN(SBDE.IndiDataMap) {
 				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
-				buyval := SBDE.IndiDataMap["close"] - SBDE.IndiDataMap["ma1"]
+				buyval := SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Amount"]/SBDE.IndiDataMap["Volume"]
 				lstbv, bok := dmt.lastBuyValue[instID]
-				sellval := SBDE.IndiDataMap["close"] - SBDE.IndiDataMap["ma1"]
+				sellval := SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Open"]
 				lstsv, sok := dmt.lastSellValue[instID]
 				if bok && buyval >= lstbv {
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
@@ -267,17 +273,17 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 						// if vAcct.SAcct.PosMap[instID].CalEquity() == 0 {
 						// 	orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, datetime, SBDE.IndiDataMap["close"], ss.SNum, order.Buy, &tmpSCP))
 						// }
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], dmt.SNum, "Buy", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], dmt.SNum, "Buy", &tmpSCP))
 
 					} else {
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], dmt.SNum, "Buy", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], dmt.SNum, "Buy", &tmpSCP))
 					}
 					dmt.ifsdone = true
 					// DCE: debug info
 					if debug {
 						// this part is for test only
 						log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
-							Float64("close", SBDE.IndiDataMap["close"]).Float64("ma1", SBDE.IndiDataMap["ma1"]).Str("InstID", instID).
+							Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
 							Msg("Strategy buy")
 					}
 				}
@@ -287,7 +293,7 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 					//check if target is in the vAcct.SAcct, if yes, sell them all if not, do nothing
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
+							orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
 						}
 					}
 					dmt.ifsdone = true
@@ -295,7 +301,7 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 					if debug {
 						// this part is for test only
 						log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
-							Float64("close", SBDE.IndiDataMap["close"]).Float64("ma1", SBDE.IndiDataMap["ma1"]).Str("InstID", instID).
+							Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
 							Msg("Strategy sell")
 					}
 				}

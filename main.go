@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	"github.com/wonderstone/QuantTools/dataprocessor"
+	"github.com/wonderstone/QuantTools/exporter"
 	"github.com/wonderstone/QuantTools/indicator"
 	"github.com/wonderstone/QuantTools/realinfo"
 
@@ -79,31 +80,49 @@ func main() {
 			log.Fatal().Msg(err.Error())
 		}
 	}
+	// export realtime.yaml
+	exporter.ExportRealtimeYaml("./config/Manual", "BackTest.yaml", "Default", va)
+
 	// * **********************   The end for the Backtesting!   **********************
 	// 注意 这是个偷懒的做法  原则上请只包含一个回测或实盘任务
-	// * **********************This part is for the Realtime job!**********************
+	// ? 分割线
 
-	// * 1.0 从realtime.yaml中读取数据信息
+	// * **********************This part is for the Realtime job!**********************
+	// 0. read the config file realtime.yaml and get the vitual account and strategy info
+	// !0.1 of course, something should happen to realtime.yaml, make sure it fits the needs
+	// 1. get the data from VDS for preload using the same way as Backtest csvprocessor
+	// 2. get realtime data from VDS and process it
+	// !2.1 frequency check: if the frequency is not the same as strategy required, make it the same
+	// !2.2 add indicators to the data from 2.1 as *BarC
+	// !2.3 pass the data to channel
+	// 3. strategy receives the data from channel and process it
+	// * **********************       Realtime job starts!      **********************
+	// * 0 从realtime.yaml中读取数据信息
 	configdir := "./"
 	configfile := "realtime.yaml"
+	// * 0.1 从realtime.yaml中读取虚拟账户信息 方便用户调整到自己的持仓 当然也可以手动改yaml文件
 	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir, configfile)
+	// * 0.2 从accountinfo.yaml中读取真实账户信息，下单用
 	info := realinfo.NewInfoFromConfig("./config/Manual/", "accountinfo.yaml")
-
+	// * 0.3 组合为一个realtime结构体
 	rt := framework.NewRealTimeConfig(configdir, "realtime.yaml", info.IM, &vatmp)
-	// fmt.Println(rt)
-
-	// * build a barc channel
+	// * 0.4 build a barc channel
 	bch := make(chan *dataprocessor.BarC)
-	// * build a cm channel
+	// * 0.5 build a cm channel for futures market
 	cmch := make(chan map[string]map[string]float64)
+
+	// * 1. get the data from VDS for preload using the same way as Backtest csvprocessor
+
+	// * 2. get realtime data from VDS and process it
+
 	// * for instance: build a ma2 indicatormap and load some data into the ma2 indicator
 	ma2map := make(map[string]*indicator.MA)
 	// ** iter the target list
 	for _, stock := range rt.SInstrNames {
-		ma2map[stock] = indicator.NewMA("Ma2", []int{2}, []string{"close"})
+		ma2map[stock] = indicator.NewMA("Ma2", []int{2}, []string{"Close"})
 		// ** data preloading for indicators
-		ma2map[stock].LoadData(map[string]float64{"close": 1.0})
-		ma2map[stock].LoadData(map[string]float64{"close": 2.0})
+		ma2map[stock].LoadData(map[string]float64{"Close": 1.0})
+		ma2map[stock].LoadData(map[string]float64{"Close": 2.0})
 	}
 	// //be serious you jackass!!!
 
@@ -129,7 +148,7 @@ func main() {
 		close(bch)
 	}()
 
-	// * 2.0 strategy receives the data from channel and do the realtime job!!!
+	// * 3.0 strategy receives the data from channel and do the realtime job!!!
 	// ! be sure you add the code to connect the broker transaction server
 	rt.ActOnRTData(bch, cmch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 

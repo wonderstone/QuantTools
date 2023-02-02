@@ -10,12 +10,8 @@ import (
 func TestExportRealtimeYaml(t *testing.T) {
 	va := virtualaccount.NewVirtualAccount("2017/10/9 9:39", 100000, 100000)
 	va.SAcct.ResetMVSlice()
-	tmp := make(map[string]interface{})
-	tmp["SIndiNmsAfter"] = []string{"S1"}
-	tmp["FIndiNmsAfter"] = []string{"F1"}
-	tmp["SDTfields"] = []string{"S1"}
-	tmp["FDTfields"] = []string{"F1"}
-	ExportRealtimeYaml("../config/Manual", "BackTest", "Default", va, tmp)
+
+	ExportRealtimeYaml("../config/Manual", "BackTest", "Default", va)
 }
 
 func TestReplaceVA(t *testing.T) {

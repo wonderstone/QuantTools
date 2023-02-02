@@ -76,10 +76,10 @@ func NewSAFromConfig(filename string, configpath string, sec string, cpm cp.CPMa
 			tmpPD := PositionDetail{
 				UdTime:    PDIMap["udtime"].(string),
 				InstID:    PDIMap["instid"].(string),
-				BasePrice: PDIMap["baseprice"].(float64),
-				LastPrice: PDIMap["lastprice"].(float64),
-				Num:       float64(PDIMap["num"].(int)),
-				Equity:    PDIMap["equity"].(float64),
+				BasePrice: Float64FromInterface(PDIMap["baseprice"]),
+				LastPrice: Float64FromInterface(PDIMap["lastprice"]),
+				Num:       Float64FromInterface(PDIMap["num"]),
+				Equity:    Float64FromInterface(PDIMap["equity"]),
 				SCP:       &scp,
 			}
 			tmpPosTdys = append(tmpPosTdys, tmpPD)
@@ -94,10 +94,10 @@ func NewSAFromConfig(filename string, configpath string, sec string, cpm cp.CPMa
 			tmpPD := PositionDetail{
 				UdTime:    PDIMap["udtime"].(string),
 				InstID:    PDIMap["instid"].(string),
-				BasePrice: PDIMap["baseprice"].(float64),
-				LastPrice: PDIMap["lastprice"].(float64),
-				Num:       float64(PDIMap["num"].(int)),
-				Equity:    PDIMap["equity"].(float64),
+				BasePrice: Float64FromInterface(PDIMap["baseprice"]),
+				LastPrice: Float64FromInterface(PDIMap["lastprice"]),
+				Num:       Float64FromInterface(PDIMap["num"]),
+				Equity:    Float64FromInterface(PDIMap["equity"]),
 				SCP:       &scp,
 			}
 			tmpPosPrev = append(tmpPosPrev, tmpPD)
@@ -223,4 +223,22 @@ func (SA *StockAccount) ActOnCM() {
 	// * 8.修正字段 MarketValueSlice
 	SA.MarketValueSlice = append(SA.MarketValueSlice, account.MktValDataType{Time: SA.UdTime, MktVal: SA.MktVal})
 
+}
+
+// func to return float64 from interface{} with reflect
+func Float64FromInterface(v interface{}) float64 {
+	switch vv := v.(type) {
+	case int:
+		return float64(vv)
+	case int32:
+		return float64(vv)
+	case int64:
+		return float64(vv)
+	case float32:
+		return float64(vv)
+	case float64:
+		return vv
+	default:
+		return 0.0
+	}
 }

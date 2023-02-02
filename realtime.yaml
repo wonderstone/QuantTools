@@ -1,42 +1,33 @@
-afields:
-    sindinmsafter:
-        - ma1
-        - close
-        - vol
 contractprop:
-    confname: ContractProp
-    cpdatadir: ./config/Manual
+    confname: ContractProp.yaml
+    cpdatadir: ./config/Manual/
 datafields:
+    fadfields:
+        - MA3
     fcsvdatafields: []
     findinames: []
     finstrnames: []
+    sadfields:
+        - MA3
     scsvdatafields:
-        - open
-        - high
-        - low
-        - close
-        - vol
-        - amount
-        - change
-        - changerate
-        - amplitude
-        - openinterest
-        - ma1
-        - ma2
-        - ma3
-        - ma4
+        - Open
+        - Close
+        - High
+        - Low
+        - Volume
+        - Amount
     sindinames:
-        - close
-        - vol
-        - ma1
+        - Open
+        - Close
+        - High
+        - Low
+        - Volume
+        - MA3
     sinstrnames:
-        - sz002673
+        - sh510050
 matcherparam:
     matcherslippage4f: 1
     matcherslippage4s: 0.01
-pa:
-    patype: TA
-    riskfreerate: 0
 stgmodel:
     smdatadir: ./config/Manual
     smgeptype: Genome
@@ -44,129 +35,30 @@ stgmodel:
     strategymodule: Simple
 va:
     sacct:
-        inittime: 2017/10/9 9:39
-        udtime: 2021/1/5 10:30
-        mktval: 104436.35826300002
-        fundavail: 5775.358263000004
+        inittime: 2023.01.18T09:35:00.000
+        udtime: 2023.01.30T14:10:00.000
+        mktval: 99834.48130000001
+        fundavail: 48124.48130000001
         allprofit: 0
-        allcommission: 50.941736999999996
+        allcommission: 5.5187
         posmap:
-            sz002673:
-                udtime: 2020/12/15 15:00
+            sh510050:
+                udtime: 2023.01.30T14:10:00.000
                 postdys: []
                 posprevs:
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4281
-                      lastprice: 9.0967
+                    - udtime: 2023.01.30T14:10:00.000
+                      instid: sh510050
+                      baseprice: 51.87
+                      lastprice: 0
                       num: 10
-                      equity: 9096.7
+                      equity: 0
                       scp:
                         contractsize: 100
                         transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4378
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4378
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4378
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4184
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4086
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.4281
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.3891
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.3989
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
-                        commbrokerrate: 6.87e-05
-                    - udtime: 2020/12/15 15:00
-                      instid: sz002673
-                      baseprice: 9.3891
-                      lastprice: 9.0967
-                      num: 10
-                      equity: 9096.7
-                      scp:
-                        contractsize: 100
-                        transferfeerate: 1e-05
-                        taxrate: 0.001
+                        taxrate: 0
                         commbrokerrate: 6.87e-05
         marketvalueslice: []
-        uuid: 8ff4553f-48b7-4837-ba15-8dd3563e5c87
+        uuid: 4ee57aa1-4234-4959-b49e-15b72b188407
     facct:
         inittime: ""
         udtime: ""

@@ -13,7 +13,16 @@ import (
 	"github.com/wonderstone/QuantTools/indicator"
 )
 
-// realtime processor has 3 parts:
+// realtime processor has 4 parts:
+// 0. read the config file realtime.yaml and get the vitual account and strategy info
+// !0.1 of course, something should happen to realtime.yaml, make sure it fits the needs
+// 1. get the data from VDS for preload using the same way as Backtest csvprocessor
+// 2. get realtime data from VDS and process it
+// !2.1 frequency check: if the frequency is not the same as strategy required, make it the same
+// !2.2 add indicators to the data from 2.1 as *BarC
+// !2.3 pass the data to channel
+// 3. strategy receives the data from channel and process it
+
 // 1. get the history data from source
 func FakeGetHistoryData(dir string) (BarCMap map[string]*BarC, BarCMapkeydts []string) {
 	// init the BarCMap
@@ -76,8 +85,10 @@ func FakeGetHistoryData(dir string) (BarCMap map[string]*BarC, BarCMapkeydts []s
 	}
 	// sort the BarCMapkeydts
 	sort.Slice(BarCMapkeydts, func(i, j int) bool {
-		dti, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[i])
-		dtj, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[j])
+		// dti, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[i])
+		// dtj, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[j])
+		dti, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[i])
+		dtj, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[j])
 		return dti.Before(dtj)
 	})
 
@@ -93,9 +104,7 @@ func AddIndicatorsToSData(pBC *BarC, ID string, pIndicators []indicator.IIndicat
 			pIndicator.LoadData(pBC.Stockdata[ID].IndiDataMap)
 			pBC.Stockdata[ID].IndiDataMap[pIndicator.GetName()] = pIndicator.Eval()
 			fmt.Println(pIndicator)
-		} //else {
-		//fmt.Println("nan")
-		//}
+		}
 
 	}
 }

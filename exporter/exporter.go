@@ -15,9 +15,9 @@ import (
 // sec: the section name in the BackTest.yaml, most likely "Default"
 // va: the virtual account info to be added
 // AInfo: additional info to be added
-func ExportRealtimeYaml(configDir string, filename string, sec string, va virtualaccount.VAcct, AInfo interface{}) {
+func ExportRealtimeYaml(configDir string, filename string, sec string, va virtualaccount.VAcct) {
 	// read BackTest configuration from file
-	c := configer.New(configDir + filename)
+	c := configer.New(configDir + "/" + filename)
 	err := c.Load()
 	if err != nil {
 		panic(err)
@@ -30,8 +30,7 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 	m := make(map[string]interface{})
 	// Add Virtual account fields
 	m["va"] = va
-	// Add additional fields
-	m["afields"] = AInfo
+
 	// Add Data fields
 	tdm := make(map[string]interface{})
 	// fmt.Println(viper.GetString("SMName"))
@@ -51,6 +50,12 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 		scsvdatafields = append(scsvdatafields, v.(string))
 	}
 	tdm["scsvdatafields"] = scsvdatafields
+	var sadfields []string
+	for _, v := range tmpMap["sadfields"].([]interface{}) {
+		sadfields = append(sadfields, v.(string))
+	}
+	tdm["sadfields"] = sadfields
+
 	var finstrnames []string
 	for _, v := range tmpMap["finstrnames"].([]interface{}) {
 		finstrnames = append(finstrnames, v.(string))
@@ -66,6 +71,11 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 		fcsvdatafields = append(fcsvdatafields, v.(string))
 	}
 	tdm["fcsvdatafields"] = fcsvdatafields
+	var fadfields []string
+	for _, v := range tmpMap["fadfields"].([]interface{}) {
+		fadfields = append(fadfields, v.(string))
+	}
+	tdm["fadfields"] = fadfields
 	m["datafields"] = tdm
 
 	// #  Section for ContractProp
@@ -79,14 +89,14 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 	tMPm["matcherslippage4f"] = tmpMap["matcherslippage4f"]
 	m["matcherparam"] = tMPm
 	// #  Section for Performance Analytics Parameter
-	tPAm := make(map[string]interface{})
-	tPAm["riskfreerate"] = tmpMap["riskfreerate"]
-	tPAm["patype"] = tmpMap["patype"]
-	m["pa"] = tPAm
+	// tPAm := make(map[string]interface{})
+	// tPAm["riskfreerate"] = tmpMap["riskfreerate"]
+	// tPAm["patype"] = tmpMap["patype"]
+	// m["pa"] = tPAm
 	// #  Section for Strategy Module Selection
 	tSMm := make(map[string]interface{})
 	tSMm["strategymodule"] = tmpMap["strategymodule"]
-	tSMm["smgepyype"] = tmpMap["smgeptype"]
+	tSMm["smgeptype"] = tmpMap["smgeptype"]
 	tSMm["smname"] = tmpMap["smname"]
 	tSMm["smdatadir"] = tmpMap["smdatadir"]
 	m["stgmodel"] = tSMm
@@ -134,12 +144,15 @@ func ReplaceVA(configDir string, filename string, va virtualaccount.VAcct) {
 	}
 }
 
-/* export the simplified Karva expression to refactor the realtime expression trees(ETs)
+/*
+	export the simplified Karva expression to refactor the realtime expression trees(ETs)
+
 the file would in the same dir as the executable file
 configDir: the directory of the configuration files, let's say GEP.yaml, read info from here
 filename : the name of the yaml file, GEP.yaml would be GEP
 secname :  the yaml file section name, e.g. "GEP"
-kes : the Karva expression string slice, but put a interface{} here */
+kes : the Karva expression string slice, but put a interface{} here
+*/
 func ExportSKE(configDir string, filename string, secname string, KES interface{}) {
 	// read GEP configuration from file.
 	conf := configer.New(configDir + filename)

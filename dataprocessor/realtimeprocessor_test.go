@@ -10,7 +10,7 @@ import (
 
 // test realtimeprocessor
 func TestFakeGetHistoryData(t *testing.T) {
-	dir := "../tmpdata/stockdata/1min/"
+	dir := "../tmpdata/stockdata/test/"
 	fmt.Println("dir:", dir)
 
 	d, s := FakeGetHistoryData(dir)
@@ -20,7 +20,7 @@ func TestFakeGetHistoryData(t *testing.T) {
 		fmt.Println(v, d[v])
 
 	}
-	assert.Equal(t, len(s), 4071, "should be 4071")
+	assert.Equal(t, len(s), 164, "should be 164")
 
 }
 
@@ -54,14 +54,14 @@ func TestGetIndiInfoMap(t *testing.T) {
 // test AddIndicatorsToSData
 func TestAddIndicatorsToSData(t *testing.T) {
 	// get the history data
-	dir := "../tmpdata/stockdata/1min/"
+	dir := "../tmpdata/stockdata/test/"
 	fmt.Println("dir:", dir)
 	dataMap, timeStampSlice := FakeGetHistoryData(dir)
 	// get the indiInfoMap
-	IDs := []string{"sh600409", "sz000058"}
+	IDs := []string{"sh510050"}
 	iis := []indicator.IndiInfo{
-		{Name: "MA3", IndiType: "MA", ParSlice: []int{3}, InfoSlice: []string{"close"}},
-		{Name: "Var3", IndiType: "Var", ParSlice: []int{3}, InfoSlice: []string{"close"}},
+		{Name: "MA3", IndiType: "MA", ParSlice: []int{3}, InfoSlice: []string{"Close"}},
+		{Name: "Var3", IndiType: "Var", ParSlice: []int{3}, InfoSlice: []string{"Close"}},
 	}
 	// new a temp map for 100 map[string]*BarC data
 	tmpMap := make(map[string]*BarC)
@@ -69,14 +69,12 @@ func TestAddIndicatorsToSData(t *testing.T) {
 	for _, timeStamp := range timeStampSlice[:100] {
 		tmpMap[timeStamp] = dataMap[timeStamp]
 	}
-	oldLen := len(tmpMap["2017/10/9 9:40"].Stockdata["sh600409"].IndiDataMap)
+	oldLen := len(tmpMap["2023.01.18T13:32:00.000"].Stockdata["sh510050"].IndiDataMap)
 	iim := GetIndiInfoMap(IDs, iis)
 	// iter the timeStampSlice
 	for _, timeStamp := range timeStampSlice[:100] {
 		fmt.Println("timeStamp:", timeStamp)
-		if timeStamp == "2017/10/9 11:20" {
-			continue
-		}
+
 		// iter the IDs
 		for _, ID := range IDs {
 			// iter the indicators
@@ -85,8 +83,8 @@ func TestAddIndicatorsToSData(t *testing.T) {
 		fmt.Println("tmpMap[timeStamp]:", tmpMap[timeStamp])
 	}
 	//
-	NewLen := len(tmpMap["2017/10/9 9:40"].Stockdata["sh600409"].IndiDataMap)
+	NewLen := len(tmpMap["2023.01.18T13:32:00.000"].Stockdata["sh510050"].IndiDataMap)
 
-	assert.Equal(t, NewLen, oldLen+2, "should be 2")
+	assert.Equal(t, NewLen, oldLen+2, "difference should be 2")
 
 }
