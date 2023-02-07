@@ -40,10 +40,10 @@ func CsvProcessDir(dirpath string, targetdir string, iis []indicator.IndiInfo) b
 }
 
 // function to read csv file add some datas and write to a new csv file
-func CsvProcess(fpath string, targetdir string, iis []indicator.IndiInfo) bool {
+func CsvProcess(fdir string, targetdir string, iis []indicator.IndiInfo) bool {
 
 	// open the csv file
-	csvFile, err := os.Open(fpath)
+	csvFile, err := os.Open(fdir)
 	if err != nil {
 		panic("建立csv文件handler出错")
 	}

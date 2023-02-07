@@ -40,9 +40,9 @@ func NewStockAccount(initTime string, cash float64) StockAccount {
 }
 
 // load from a yaml file to generate a stock account with specific fields
-func NewSAFromConfig(filename string, configpath string, sec string, cpm cp.CPMap) StockAccount {
+func NewSAFromConfig(configdir string, filename string, sec string, cpm cp.CPMap) StockAccount {
 	// 获取配置文件记录的 VA.SACCT map
-	c := configer.New(configpath + filename)
+	c := configer.New(configdir + filename)
 	err := c.Load()
 	if err != nil {
 		panic(err)

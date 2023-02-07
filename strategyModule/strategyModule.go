@@ -42,14 +42,14 @@ type IStrategy interface {
 }
 
 // something like simple factory pattern
-func GetStrategy(sec string, dir string, tag string) IStrategy {
+func GetStrategy(dir string, BTConfile string, sec string, StgConfile string, tag string) IStrategy {
 	switch tag {
 	case "simple":
-		return NewSimpleStrategyFromConfig(sec, dir)
+		return NewSimpleStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 	case "DMT":
-		s := NewDMTStrategyFromConfig(sec, dir)
+		s := NewDMTStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 		return &s
 	default:
-		return NewSimpleStrategyFromConfig(sec, dir)
+		return NewSimpleStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 	}
 }

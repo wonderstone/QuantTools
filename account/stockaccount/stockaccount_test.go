@@ -1,8 +1,9 @@
 // 核心测试两类操作：基于order 基于data
 // order的情况需要考虑：1. 持仓记录添加是否正常；2. 隔日更新进入昨日持仓是否正常；
-// 					 3. 卖出当日持仓(T+1)是否被拒绝；4. 卖出超过持仓是否报错；
+//  3. 卖出当日持仓(T+1)是否被拒绝；4. 卖出超过持仓是否报错；
+//
 // data 的情况需要考虑：1. 提供非持仓数据是否忽略；2. 提供持仓数据是否对应更新；
-//                   3. 提供新一日数据，当日持仓是否转入前持仓
+//  3. 提供新一日数据，当日持仓是否转入前持仓
 package stockaccount
 
 import (
@@ -106,10 +107,10 @@ func TestActOnOrder(t *testing.T) {
 
 // test the NewStockAccountFromConfig
 func TestNewStockAccountFromConfig(t *testing.T) {
-	dir := "/Users/wonderstone/go/QuantTools/config/Manual"
-	cpm := cp.NewCPMap("ContractProp", dir)
+	dir := "/Users/wonderstone/go/QuantTools/config/Manual/"
+	cpm := cp.NewCPMap(dir, "ContractProp.yaml")
 
-	SA := NewSAFromConfig("realtime", "/Users/wonderstone/go/QuantTools", "VA.sacct", cpm)
+	SA := NewSAFromConfig("/Users/wonderstone/go/QuantTools/", "realtime.yaml", "VA.sacct", cpm)
 	fmt.Println(SA)
 
 }

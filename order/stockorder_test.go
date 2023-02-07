@@ -14,7 +14,7 @@ func TestNewStockOrder(t *testing.T) {
 	fmt.Println("test NewStockOrder")
 	confName := "ContractProp.yaml"
 	dir := "../config/Manual/"
-	cpm := cp.NewCPMap(confName, dir)
+	cpm := cp.NewCPMap(dir, confName)
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 
@@ -36,7 +36,7 @@ func TestCalEquity(t *testing.T) {
 	fmt.Println("test NewStockOrder")
 	confName := "ContractProp"
 	dir := "../config/Manual"
-	cpm := cp.NewCPMap(confName, dir)
+	cpm := cp.NewCPMap(dir, confName)
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 

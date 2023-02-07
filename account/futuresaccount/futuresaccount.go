@@ -39,9 +39,9 @@ func NewFuturesAccount(initTime string, cash float64) FuturesAccount {
 }
 
 // load from a yaml file to generate a FuturesAccount with specific fields
-func NewFAFromConfig(filename string, configpath string, sec string, cpm cp.CPMap) FuturesAccount {
+func NewFAFromConfig(configdir string, filename string, sec string, cpm cp.CPMap) FuturesAccount {
 	// 获取配置文件记录的 Va.FACCT map
-	c := configer.New(configpath + filename)
+	c := configer.New(configdir + filename)
 	err := c.Load()
 	if err != nil {
 		panic(err)

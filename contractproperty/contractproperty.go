@@ -168,8 +168,8 @@ func SimpleNewFCPFromMap(cpm CPMap, code string) FCP {
 }
 
 // NewCPMap from config file
-func NewCPMap(confName string, dir string) CPMap {
-	c := configer.New(dir + confName)
+func NewCPMap(configdir string, configname string) CPMap {
+	c := configer.New(configdir + configname)
 	err := c.Load()
 	if err != nil {
 		panic(err)

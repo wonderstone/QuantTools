@@ -52,8 +52,9 @@ func NewDMTStrategy(SInstNms, SIndiNms, FInstNms, FIndiNms []string, Snum, Fnum 
 }
 
 // this function is nessary for the framework
-func NewDMTStrategyFromConfig(sec string, dir string) DMTStrategy {
-	c := configer.New(dir + "BackTest.yaml")
+func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfile string) DMTStrategy {
+	// c := configer.New(dir + "BackTest.yaml")
+	c := configer.New(dir + BTConfile)
 	err := c.Load()
 	if err != nil {
 		panic(err)
@@ -82,7 +83,9 @@ func NewDMTStrategyFromConfig(sec string, dir string) DMTStrategy {
 		findinames = append(findinames, v.(string))
 	}
 
-	c = configer.New(dir + "Strategy.yaml")
+	// c = configer.New(dir + "Strategy.yaml")
+	c = configer.New(dir + StgConfile)
+
 	err = c.Load()
 	if err != nil {
 		panic(err)

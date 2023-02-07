@@ -30,12 +30,12 @@ func TestNewFuturesContractPropFromConfig(t *testing.T) {
 	assert.Equal(t, float64(1000), fcp.ContractSize)
 }
 
-//test NewContractPropMap
+// test NewContractPropMap
 func TestNewContractPropMap(t *testing.T) {
 	fmt.Println("test NewContractPropMap")
 	confName := "ContractProp"
 	dir := "../config/Manual"
-	cpm := NewCPMap(confName, dir)
+	cpm := NewCPMap(dir, confName)
 
 	assert.Equal(t, float64(100), cpm.StockPropMap["st"].ContractSize)
 	fmt.Println(cpm)
@@ -62,7 +62,7 @@ func TestSimpleNewSCPFromMap(t *testing.T) {
 	fmt.Println("test SimpleNewSCPFromMap")
 	confName := "ContractProp"
 	dir := "../config/Manual"
-	cpm := NewCPMap(confName, dir)
+	cpm := NewCPMap(dir, confName)
 	// 原则上需要开头字母标注市场。接受sh600002和sh.600002的格式输入
 	// 当输入600002时，只是返回默认的主板类型。
 	// 当不核查涨跌幅时，此处区分意义有限，保留只是为了未来扩展。
@@ -76,7 +76,7 @@ func TestSimpleNewFSCPFromMap(t *testing.T) {
 	fmt.Println("test SimpleNewFSCPFromMap")
 	confName := "ContractProp"
 	dir := "../config/Manual"
-	cpm := NewCPMap(confName, dir)
+	cpm := NewCPMap(dir, confName)
 	fcp := SimpleNewFCPFromMap(cpm, "au2210")
 	fmt.Println(fcp)
 	assert.Equal(t, float64(1000), fcp.ContractSize)

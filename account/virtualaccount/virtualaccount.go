@@ -22,11 +22,11 @@ func NewVirtualAccount(BeginDate string, StockInitValue float64, FuturesInitValu
 }
 
 // * Normally new from config file
-func NewVirtualAccountFromConfig(configPath string, configFile string) VAcct {
+func NewVirtualAccountFromConfig(configDir string, configFile string) VAcct {
 	// read config to get cpm
-	cpm := cp.NewCPMap("ContractProp.yaml", "./config/Manual/")
+	cpm := cp.NewCPMap("./config/Manual/", "ContractProp.yaml")
 	return VAcct{
-		SAcct: stockaccount.NewSAFromConfig(configFile, configPath, "va.sacct", cpm),
+		SAcct: stockaccount.NewSAFromConfig(configDir, configFile, "va.sacct", cpm),
 		// ! 正式发布前，请务必检查此处！ 还没细看对期货的支持呢！
 		// FAcct: futuresaccount.NewFuturesAccountFromConfig(configPath string),
 	}

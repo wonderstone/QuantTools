@@ -141,8 +141,9 @@ func NewBackTest(SInitVal float64, FInitVale float64, BDt string, EDt string,
 	}
 }
 
-func NewBackTestConfig(sec string, dir string) BackTest {
-	c := configer.New(dir + "BackTest.yaml")
+func NewBackTestConfig(dir string, file string, sec string) BackTest {
+	c := configer.New(dir + file)
+	// c := configer.New(dir + "BackTest.yaml")
 	err := c.Load()
 	if err != nil {
 		panic(err)
@@ -257,7 +258,7 @@ func NewRealTimeConfig(dir string, filename string, info map[string]interface{},
 	SMGEPType := c.GetString("StgModel.SMGEPType")
 	SMName := c.GetString("StgModel.SMName")
 	SMDataDir := c.GetString("StgModel.SMDataDir")
-	cpm := cp.NewCPMap("ContractProp.yaml", "./config/Manual/")
+	cpm := cp.NewCPMap(dir, "ContractProp.yaml")
 	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, SADfields, FInstrNs, FIndiNs, FRDtfields, FADfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
 }
@@ -279,8 +280,8 @@ func getFileMap(path string) map[string]void {
 }
 
 // 0. 输出strategy
-func (BT *BackTest) GetStrategy(sec string, dir string, tag string) strategyModule.IStrategy {
-	return strategyModule.GetStrategy(sec, dir, tag)
+func (BT *BackTest) GetStrategy(dir string, BTConfile string, sec string, StgConfile string, tag string) strategyModule.IStrategy {
+	return strategyModule.GetStrategy(dir, BTConfile, sec, StgConfile, tag)
 }
 
 // 1. 准备数据
@@ -326,7 +327,7 @@ func (BT *BackTest) PrepareData() {
 	}
 
 	// 产生合约属性 Map
-	BT.CPMap = cp.NewCPMap(BT.ConfName, BT.CPDataDir)
+	BT.CPMap = cp.NewCPMap(BT.CPDataDir, BT.ConfName)
 	// 生成升序时间index
 	for mapkeydt := range BT.BCM.BarCMap {
 		BT.BCM.BarCMapkeydts = append(BT.BCM.BarCMapkeydts, mapkeydt)
@@ -502,12 +503,12 @@ func (BT *BackTest) EvalPerformance(MarketValueSlice []account.MktValDataType, e
 	return PE.CalcPerfEvalResult(einfo)
 }
 
-func (RT *RealTime) ActOnRTData(bc <-chan *dataprocessor.BarC, mc <-chan map[string]map[string]float64, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
+func (RT *RealTime) ActOnRTData(dir string, file string, bc <-chan *dataprocessor.BarC, mc <-chan map[string]map[string]float64, strategymodule strategyModule.IStrategy, CPMap cp.CPMap, Eval func([]float64) []float64, mode string) {
 	// 期货账户开启goroutine 用于接收mc数据 并更新账户
 	go RT.ActOnCM(mc)
 	// 2.0 defer 将va数据更新写入到realtime.yaml中
-	defer exporter.ReplaceVA("./", "realtime.yaml", *RT.VA)
-
+	// defer exporter.ReplaceVA("./", "realtime.yaml", *RT.VA)
+	defer exporter.ReplaceVA(dir, file, *RT.VA)
 	// 3.0 dataprocessor中RealTimeProcess
 	var lastdatetime string
 	// get a matcher and a temp orderResult

@@ -11,17 +11,17 @@ import (
 
 // 假定一个标的的Bar信息和indicator信息都已经整理完存在一个csv文件中
 // viper is not thread safe, add mutex to protect the data read process and do it before iteration or goroutine
-func (BCM *BarCM) CsvSBarReader(filedir string) {
+func (BCM *BarCM) CsvSBarReader(fpath string) {
 	if len(BCM.InstSIDS) == 0 {
 		panic("股票标的切片为空 检查策略逻辑")
 	}
-	csvFile, err := os.Open(filedir)
+	csvFile, err := os.Open(fpath)
 	if err != nil {
 		panic("建立csv文件handler出错")
 	}
 	defer csvFile.Close()
 	// get the instID from the file name
-	instSID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
+	instSID := strings.TrimSuffix(filepath.Base(fpath), filepath.Ext(filepath.Base(fpath)))
 	// 逐行读取csv文件
 	csvReader := csv.NewReader(csvFile)
 	header, err := csvReader.Read()
@@ -66,17 +66,17 @@ func (BCM *BarCM) CsvSBarReader(filedir string) {
 
 }
 
-func (BCM *BarCM) CsvFBarReader(filedir string) {
+func (BCM *BarCM) CsvFBarReader(fpath string) {
 	if len(BCM.InstFIDS) == 0 {
 		panic("期货标的切片为空 检查策略逻辑")
 	}
-	csvFile, err := os.Open(filedir)
+	csvFile, err := os.Open(fpath)
 	if err != nil {
 		panic("建立csv文件handler出错")
 	}
 	defer csvFile.Close()
 	// get the instID from the file name
-	instFID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
+	instFID := strings.TrimSuffix(filepath.Base(fpath), filepath.Ext(filepath.Base(fpath)))
 	// 逐行读取csv文件
 	csvReader := csv.NewReader(csvFile)
 	header, err := csvReader.Read()
@@ -121,16 +121,16 @@ func (BCM *BarCM) CsvFBarReader(filedir string) {
 
 }
 
-func (BCM *BarCM) CsvFMTMReader(filedir string) {
+func (BCM *BarCM) CsvFMTMReader(fpath string) {
 	if len(BCM.InstFIDS) == 0 {
 		panic("期货标的切片为空 检查策略逻辑")
 	}
-	csvFile, err := os.Open(filedir)
+	csvFile, err := os.Open(fpath)
 	if err != nil {
 		panic("建立csv文件handler出错")
 	}
 	// get the instID from the file name
-	instFID := strings.TrimSuffix(filepath.Base(filedir), filepath.Ext(filepath.Base(filedir)))
+	instFID := strings.TrimSuffix(filepath.Base(fpath), filepath.Ext(filepath.Base(fpath)))
 	defer csvFile.Close()
 	// 逐行读取csv文件
 	csvReader := csv.NewReader(csvFile)
@@ -195,9 +195,9 @@ func CompareStringSlices(a, b []string) bool {
 // }
 
 // use os.ReadDir(dirname)
-func ListDir(dirPth string, suffix string) (files []string, err error) {
+func ListDir(targetDir string, suffix string) (files []string, err error) {
 	files = make([]string, 0, 30)
-	dir, err := os.ReadDir(dirPth)
+	dir, err := os.ReadDir(targetDir)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func ListDir(dirPth string, suffix string) (files []string, err error) {
 			continue
 		}
 		if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) { //匹配文件
-			files = append(files, dirPth+PthSep+fi.Name())
+			files = append(files, targetDir+PthSep+fi.Name())
 		}
 	}
 	return files, nil

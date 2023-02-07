@@ -14,8 +14,8 @@ func NewInfo(info map[string]interface{}) *Info {
 
 // NewInfoFromConfig reads the configuration file and returns a Info struct
 // filename: accountinfo.yaml
-func NewInfoFromConfig(configpath string, filename string) *Info {
-	c := configer.New(configpath + filename)
+func NewInfoFromConfig(configdir string, filename string) *Info {
+	c := configer.New(configdir + filename)
 	err := c.Load()
 	if err != nil {
 		panic(err)

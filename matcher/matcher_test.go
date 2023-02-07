@@ -16,7 +16,7 @@ func TestMatchFuturesOrder(t *testing.T) {
 	fmt.Println("test MatchFuturesOrder")
 	confName := "ContractProp.yaml"
 	dir := "../config/Manual/"
-	cpm := cp.NewCPMap(confName, dir)
+	cpm := cp.NewCPMap(dir, confName)
 	instID := "au2210"
 	fcp := cp.SimpleNewFCPFromMap(cpm, instID)
 
@@ -60,7 +60,7 @@ func TestMatchStockOrder(t *testing.T) {
 	fmt.Println("test MatchStockOrder")
 	confName := "ContractProp"
 	dir := "../config/Manual"
-	cpm := cp.NewCPMap(confName, dir)
+	cpm := cp.NewCPMap(dir, confName)
 	instID := "SZ000058"
 	scp := cp.SimpleNewSCPFromMap(cpm, instID)
 

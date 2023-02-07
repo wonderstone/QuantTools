@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
@@ -17,7 +18,7 @@ import (
 // AInfo: additional info to be added
 func ExportRealtimeYaml(configDir string, filename string, sec string, va virtualaccount.VAcct) {
 	// read BackTest configuration from file
-	c := configer.New(configDir + "/" + filename)
+	c := configer.New(configDir + filename)
 	err := c.Load()
 	if err != nil {
 		panic(err)
@@ -106,7 +107,7 @@ func ExportRealtimeYaml(configDir string, filename string, sec string, va virtua
 		log.Fatal().Msg(err.Error())
 
 	}
-	err2 := ioutil.WriteFile("./realtime.yaml", data, 0777)
+	err2 := ioutil.WriteFile(configDir+"realtime.yaml", data, 0777)
 	if err2 != nil {
 		log.Fatal().Msg(err2.Error())
 	}
@@ -138,7 +139,11 @@ func ReplaceVA(configDir string, filename string, va virtualaccount.VAcct) {
 		log.Fatal().Msg(err.Error())
 
 	}
-	err2 := ioutil.WriteFile("./realtime.yaml", data, 0777)
+	// create the dir if not exist
+	if _, err := os.Stat(configDir + "tmp/"); os.IsNotExist(err) {
+		os.MkdirAll(configDir+"tmp/", os.ModePerm)
+	}
+	err2 := ioutil.WriteFile(configDir+"tmp/"+filename, data, 0777)
 	if err2 != nil {
 		log.Fatal().Msg(err2.Error())
 	}

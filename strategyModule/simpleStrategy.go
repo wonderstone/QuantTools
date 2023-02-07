@@ -35,8 +35,9 @@ func NewSimpleStrategy(SInstNms, SIndiNms, FInstNms, FIndiNms []string, Snum, Fn
 }
 
 // this function is nessary for the framework
-func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
-	c := configer.New(dir + "BackTest.yaml")
+func NewSimpleStrategyFromConfig(dir string, file string, sec string, StgConfile string) SimpleStrategy {
+	// c := configer.New(dir + "BackTest.yaml")
+	c := configer.New(dir + file)
 	err := c.Load()
 	if err != nil {
 		panic(err)
@@ -65,7 +66,9 @@ func NewSimpleStrategyFromConfig(sec string, dir string) SimpleStrategy {
 		findinames = append(findinames, v.(string))
 	}
 
-	c = configer.New(dir + "Strategy.yaml")
+	// c = configer.New(dir + "Strategy.yaml")
+	c = configer.New(dir + StgConfile)
+
 	err = c.Load()
 	if err != nil {
 		panic(err)

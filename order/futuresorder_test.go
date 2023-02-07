@@ -14,7 +14,7 @@ func TestNewFuturesOrder(t *testing.T) {
 	fmt.Println("test NewFuturesOrder")
 	confName := "ContractProp.yaml"
 	dir := "../config/Manual/"
-	cpm := cp.NewCPMap(confName, dir)
+	cpm := cp.NewCPMap(dir, confName)
 	instID := "au2210"
 	fcp := cp.SimpleNewFCPFromMap(cpm, instID)
 
@@ -32,7 +32,7 @@ func TestNewFuturesOrder(t *testing.T) {
 
 }
 
-//test CalMargin
+// test CalMargin
 func TestCalMargin(t *testing.T) {
 	// new a fcp from instID
 	fmt.Println("test CalMargin")

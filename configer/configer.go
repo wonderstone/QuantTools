@@ -105,6 +105,36 @@ func (c *configer) GetStringSlice(key string) []string {
 	return res
 }
 
+func (c *configer) GetIntSlice(key string) []int {
+	var res []int
+	// the key could be multiple levels, e.g. "a.b.c"
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
+	tmpmap := c.unmarshaledContent
+
+	// iter the tmp, when the last item is reached, return the value
+	for i, v := range tmp {
+		if i == len(tmp)-1 {
+			// check if the value is a slice,if not , make it into a slice
+			switch tmpmap[v].(type) {
+			case []interface{}:
+				for _, v := range tmpmap[v].([]interface{}) {
+					res = append(res, v.(int))
+				}
+			case int:
+				res = []int{tmpmap[v].(int)}
+			default:
+				res = tmpmap[v].([]int)
+			}
+
+		} else {
+			tmpmap = tmpmap[v].(map[string]interface{})
+		}
+
+	}
+	return res
+}
+
 // GetFloat64 returns the value of the key as a float64
 func (c *configer) GetFloat64(key string) float64 {
 	// the key could be multiple levels, e.g. "a.b.c"
@@ -130,10 +160,36 @@ func (c *configer) GetFloat64(key string) float64 {
 	return res
 }
 
+func (c *configer) GetInt(key string) int {
+	// the key could be multiple levels, e.g. "a.b.c"
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
+	tmpmap := c.unmarshaledContent
+	var res int
+	// iter the tmp, when the last item is reached, return the value
+	for i, v := range tmp {
+		if i == len(tmp)-1 {
+			// check the type of the value and convert it to float64
+			switch tmpmap[v].(type) {
+			case int:
+				res = tmpmap[v].(int)
+			case int64:
+				res = int(tmpmap[v].(int64))
+			case float64:
+				res = int(tmpmap[v].(float64))
+			}
+		} else {
+			tmpmap = tmpmap[v].(map[string]interface{})
+		}
+	}
+	return res
+}
+
 // GetString returns the value of the key as a string
 func (c *configer) GetString(key string) string {
 	// the key could be multiple levels, e.g. "a.b.c"
-	tmp := strings.Split(strings.ToLower(key), ".")
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
 	tmpmap := c.unmarshaledContent
 	var res string
 	// iter the tmp, when the last item is reached, return the value

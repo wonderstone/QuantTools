@@ -30,8 +30,8 @@ type manager struct {
 
 // * Normally NewManager from Config file
 func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
-	BT := framework.NewBackTestConfig(secBT, dir)
-	STG := BT.GetStrategy(secSTG, dir, "DMT")
+	BT := framework.NewBackTestConfig(dir, "BackTest.yaml", secBT)
+	STG := BT.GetStrategy(dir, "BackTest.yaml", secSTG, "Strategy.yaml", "DMT")
 	return &manager{
 		BT:  &BT,
 		STG: STG,
@@ -81,7 +81,7 @@ func main() {
 		}
 	}
 	// export realtime.yaml
-	exporter.ExportRealtimeYaml("./config/Manual", "BackTest.yaml", "Default", va)
+	exporter.ExportRealtimeYaml("./config/Manual/", "BackTest.yaml", "Default", va)
 
 	// * **********************   The end for the Backtesting!   **********************
 	// 注意 这是个偷懒的做法  原则上请只包含一个回测或实盘任务
@@ -98,7 +98,7 @@ func main() {
 	// 3. strategy receives the data from channel and process it
 	// * **********************       Realtime job starts!      **********************
 	// * 0 从realtime.yaml中读取数据信息
-	configdir := "./"
+	configdir := "./config/Manual/"
 	configfile := "realtime.yaml"
 	// * 0.1 从realtime.yaml中读取虚拟账户信息 方便用户调整到自己的持仓 当然也可以手动改yaml文件
 	vatmp := virtualaccount.NewVirtualAccountFromConfig(configdir, configfile)
@@ -150,7 +150,7 @@ func main() {
 
 	// * 3.0 strategy receives the data from channel and do the realtime job!!!
 	// ! be sure you add the code to connect the broker transaction server
-	rt.ActOnRTData(bch, cmch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	rt.ActOnRTData(configdir, configfile, bch, cmch, pstg, rt.CPMap, func(in []float64) []float64 { return nil }, "Manual")
 
 	// * **********************   The end for the Realtime job!   **********************
 
