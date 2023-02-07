@@ -1,6 +1,7 @@
 package strategyModule
 
 import (
+	// "math"
 	"strings"
 
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
@@ -13,20 +14,22 @@ import (
 // Stock T0Strategy
 
 type ST0Strategy struct {
-	IfBT         bool            // 是否为回测/实盘状态
-	initBTstate  map[string]bool // 是否已经初始化了回测买入状态(内部)
-	InstNames    []string        // 股票标的名称
-	IndiNames    []string        // 股票参与GEP指标名称，注意其数量不大于BarDE内信息数量，且strategy内可见BarDE的数据
-	HoldNums     []int           // 股票标的持仓数量
-	holdNumMap   map[string]int  // 股票标的持仓数量, key is the stock name,get from SInstNames and SHoldNums(内部)
-	Tlimit       int             // 交易次数限制
-	tCounter     map[string]int  // 交易次数计数器(内部)
-	tState       map[string]int  // 交易状态(内部) 0:未买入 1:已买入 -1:已卖出
-	InitBuyTime  string          // 初始化买入时间
-	StartTime    string          // 交易开始时间
-	StopTime     string          // 交易结束时间
-	ifReCoverMap map[string]bool // 是否恢复了股票持仓(内部)
-	lastDate     string          // 上一交易日日期(内部)
+	IfBT          bool               // 是否为回测/实盘状态
+	initBTstate   map[string]bool    // 是否已经初始化了回测买入状态(内部)
+	InstNames     []string           // 股票标的名称
+	IndiNames     []string           // 股票参与GEP指标名称，注意其数量不大于BarDE内信息数量，且strategy内可见BarDE的数据
+	HoldNums      []int              // 股票标的持仓数量
+	holdNumMap    map[string]int     // 股票标的持仓数量, key is the stock name,get from SInstNames and SHoldNums(内部)
+	Tlimit        int                // 交易次数限制
+	tCounter      map[string]int     // 交易次数计数器(内部)
+	tState        map[string]int     // 交易状态(内部) 0:未买入 1:已买入 -1:已卖出
+	InitBuyTime   string             // 初始化买入时间
+	StartTime     string             // 交易开始时间
+	StopTime      string             // 交易结束时间
+	ifReCoverMap  map[string]bool    // 是否恢复了股票持仓(内部)
+	lastDate      string             // 上一交易日日期(内部)
+	lastBuyValue  map[string]float64 // 公式上一次买入信号数值
+	lastSellValue map[string]float64 // 公式上一次卖出信号数值
 }
 
 func NewST0Strategy(IfBT bool, InstNames, IndiNames []string, HoldNums []int, Tlimit int, InitBuyTime, StartTime, StopTime string) ST0Strategy {
@@ -45,19 +48,21 @@ func NewST0Strategy(IfBT bool, InstNames, IndiNames []string, HoldNums []int, Tl
 
 	}
 	return ST0Strategy{
-		IfBT:         IfBT,
-		initBTstate:  initBTstate,
-		InstNames:    InstNames,
-		IndiNames:    IndiNames,
-		HoldNums:     HoldNums,
-		holdNumMap:   holdNumMap,
-		Tlimit:       Tlimit,
-		tCounter:     tCounter,
-		tState:       tState,
-		InitBuyTime:  InitBuyTime,
-		StartTime:    StartTime,
-		StopTime:     StopTime,
-		ifReCoverMap: ifReCoverMap,
+		IfBT:          IfBT,
+		initBTstate:   initBTstate,
+		InstNames:     InstNames,
+		IndiNames:     IndiNames,
+		HoldNums:      HoldNums,
+		holdNumMap:    holdNumMap,
+		Tlimit:        Tlimit,
+		tCounter:      tCounter,
+		tState:        tState,
+		InitBuyTime:   InitBuyTime,
+		StartTime:     StartTime,
+		StopTime:      StopTime,
+		ifReCoverMap:  ifReCoverMap,
+		lastBuyValue:  make(map[string]float64),
+		lastSellValue: make(map[string]float64),
 	}
 }
 
@@ -136,7 +141,45 @@ func (t0 *ST0Strategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAc
 			}
 
 			if datetime[11:] >= t0.StartTime && datetime[11:] <= t0.StopTime {
-				// 常规手动操作
+				// // 常规手动操作
+				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				buyval := SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Amount"]/SBDE.IndiDataMap["Volume"]
+				lstbv, bok := t0.lastBuyValue[instID]
+				sellval := SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Open"]
+				lstsv, sok := t0.lastSellValue[instID]
+				TradeN := t0.holdNumMap[instID] / t0.Tlimit //这里选择了第一支股票SHoldNum[0] TradeN为每次交易数量
+
+				if bok && sok {
+					if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						// 买入TradeN
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(TradeN), "Buy", &tmpSCP))
+
+						// tCounter计数器+1
+						t0.tCounter[instID] += 1
+
+						// lastBuyValue 赋值 lastSellValue 赋值
+						t0.lastBuyValue[instID] = buyval
+						t0.lastSellValue[instID] = sellval
+
+						// tState 赋值
+						t0.tState[instID] = 1
+					}
+
+					if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						// 卖出TradeN
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(TradeN), "Sell", &tmpSCP))
+
+						// tCounter计数器+1
+						t0.tCounter[instID] += 1
+
+						// lastBuyValue 赋值 lastSellValue 赋值
+						t0.lastBuyValue[instID] = buyval
+						t0.lastSellValue[instID] = sellval
+
+						// tState 赋值
+						t0.tState[instID] = -1
+					}
+				}
 
 			} else if datetime[11:] > t0.StopTime {
 

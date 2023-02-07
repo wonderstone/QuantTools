@@ -1,6 +1,7 @@
 package strategyModule
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,4 +20,11 @@ func TestNewT0StrategyFromConfig(t *testing.T) {
 // time string check
 func TestTimeCheck(t *testing.T) {
 	assert.Greater(t, "10:07:00.000", "09:06:50.999")
+
+	// declear an int variable
+	var i, j int
+	i = 9
+	j = 4
+
+	fmt.Println(int((i / j)))
 }
