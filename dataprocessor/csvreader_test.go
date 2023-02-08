@@ -37,7 +37,7 @@ func TestCsvReader(t *testing.T) {
 
 	// fmt.Println(files1)
 
-	bcm := NewBarCM(instSIDS, indiSNames, instFIDS, indiFNames, beginDate, endDate)
+	bcm := NewBarCM(instSIDS, indiSNames, instFIDS, indiFNames, beginDate, endDate, "VDS")
 	for _, file := range files {
 		instSID := strings.TrimSuffix(filepath.Base(file), filepath.Ext(filepath.Base(file)))
 		fmt.Println(instSID)

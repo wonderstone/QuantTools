@@ -41,11 +41,11 @@ func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 func main() {
 	// * **********************This part is for the Backtesting!**********************
 	// * New a manager instance:
-	m := NewManagerfromConfig("Default", "Default", "./config/Manual/")
+	m := NewManagerfromConfig("default", "default", "./config/Manual/")
 	// todo: download the data to tmpdata dir first no matter what the data source is
 	// // pretend the data has been downloaded already
 	// * manager prepares the market data
-	m.BT.PrepareData()
+	m.BT.PrepareData("VDS")
 	// DCE: debug info
 	// ? this is log part! Market Data has been prepared!
 	if debug {
@@ -81,7 +81,7 @@ func main() {
 		}
 	}
 	// export realtime.yaml
-	exporter.ExportRealtimeYaml("./config/Manual/", "BackTest.yaml", "Default", va)
+	exporter.ExportRealtimeYaml("./config/Manual/", "BackTest.yaml", "default", va)
 
 	// * **********************   The end for the Backtesting!   **********************
 	// 注意 这是个偷懒的做法  原则上请只包含一个回测或实盘任务

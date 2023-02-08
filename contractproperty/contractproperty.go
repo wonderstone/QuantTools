@@ -179,7 +179,7 @@ func NewCPMap(configdir string, configname string) CPMap {
 		panic(err)
 	}
 
-	tmpMap := c.GetStringMap("TARGETPROP")
+	tmpMap := c.GetStringMap("targetprop")
 	if len(tmpMap) == 0 {
 		panic("check config file for instrIDs")
 	}

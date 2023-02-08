@@ -241,23 +241,23 @@ func NewRealTimeConfig(dir string, filename string, info map[string]interface{},
 		panic(err)
 	}
 
-	SInstrNs := c.GetStringSlice("DataFields.sinstrnames")
-	SIndiNs := c.GetStringSlice("DataFields.sindinames")
-	SRDtfields := c.GetStringSlice("DataFields.scsvdatafields")
-	SADfields := c.GetStringSlice("DataFields.sadfields")
-	FInstrNs := c.GetStringSlice("DataFields.finstrnames")
-	FIndiNs := c.GetStringSlice("DataFields.findinames")
-	FRDtfields := c.GetStringSlice("DataFields.fcsvdatafields")
-	FADfields := c.GetStringSlice("DataFields.fadfields")
-	ConfName := c.GetString("ContractProp.ConfName")
-	CPDataDir := c.GetString("ContractProp.CPDataDir")
+	SInstrNs := c.GetStringSlice("datafields.sinstrnames")
+	SIndiNs := c.GetStringSlice("datafields.sindinames")
+	SRDtfields := c.GetStringSlice("datafields.scsvdatafields")
+	SADfields := c.GetStringSlice("datafields.sadfields")
+	FInstrNs := c.GetStringSlice("datafields.finstrnames")
+	FIndiNs := c.GetStringSlice("datafields.findinames")
+	FRDtfields := c.GetStringSlice("datafields.fcsvdatafields")
+	FADfields := c.GetStringSlice("datafields.fadfields")
+	ConfName := c.GetString("contractprop.confname")
+	CPDataDir := c.GetString("contractprop.cpdatadir")
 
-	MatcherSlpg4S := c.GetFloat64("MatcherParam.MatcherSlippage4S")
-	MatcherSlpg4F := c.GetFloat64("MatcherParam.MatcherSlippage4F")
-	StrategyMod := c.GetString("StgModel.StrategyModule")
-	SMGEPType := c.GetString("StgModel.SMGEPType")
-	SMName := c.GetString("StgModel.SMName")
-	SMDataDir := c.GetString("StgModel.SMDataDir")
+	MatcherSlpg4S := c.GetFloat64("matcherparam.matcherslippage4s")
+	MatcherSlpg4F := c.GetFloat64("matcherparam.matcherslippage4f")
+	StrategyMod := c.GetString("stgmodel.strategymodule")
+	SMGEPType := c.GetString("stgmodel.smgeptype")
+	SMName := c.GetString("stgmodel.smname")
+	SMDataDir := c.GetString("stgmodel.smdatadir")
 	cpm := cp.NewCPMap(dir, "ContractProp.yaml")
 	return NewRealTime(info, va, SInstrNs, SIndiNs, SRDtfields, SADfields, FInstrNs, FIndiNs, FRDtfields, FADfields, ConfName, CPDataDir, cpm,
 		MatcherSlpg4S, MatcherSlpg4F, StrategyMod, SMGEPType, SMName, SMDataDir)
@@ -285,7 +285,7 @@ func (BT *BackTest) GetStrategy(dir string, BTConfile string, sec string, StgCon
 }
 
 // 1. 准备数据
-func (BT *BackTest) PrepareData() {
+func (BT *BackTest) PrepareData(parseMode string) {
 	sfilemap := getFileMap(BT.StockDataDirFinal)
 	if len(sfilemap) != len(BT.SInstrNames) && len(BT.SInstrNames) != 0 {
 		panic("股票操作标的数与数据文件个数不匹配")
@@ -295,7 +295,7 @@ func (BT *BackTest) PrepareData() {
 		panic("期货操作标的数与数据文件个数不匹配")
 	}
 	// 读取文件 准备数据
-	BT.BCM = dataprocessor.NewBarCM(BT.SInstrNames, BT.SIndiNames, BT.FInstrNames, BT.FIndiNames, BT.BeginDate, BT.EndDate)
+	BT.BCM = dataprocessor.NewBarCM(BT.SInstrNames, BT.SIndiNames, BT.FInstrNames, BT.FIndiNames, BT.BeginDate, BT.EndDate, "VDS")
 	// 读取股票数据
 	if len(BT.SInstrNames) != 0 {
 		Sfiles, err := dataprocessor.ListDir(BT.StockDataDirFinal, "csv")
@@ -332,15 +332,18 @@ func (BT *BackTest) PrepareData() {
 	for mapkeydt := range BT.BCM.BarCMap {
 		BT.BCM.BarCMapkeydts = append(BT.BCM.BarCMapkeydts, mapkeydt)
 	}
-	sort.Slice(BT.BCM.BarCMapkeydts, func(i, j int) bool {
-		// 按照VDS规定格式解析时间
-		// tm, err := time.Parse("2006.01.02T15:04:05.000", "2023.01.18T09:35:00.000")
-		// dti, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[i])
-		// dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
-		dti, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[i])
-		dtj, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[j])
-		return dti.Before(dtj)
-	})
+	if parseMode == "VDS" {
+		sort.Slice(BT.BCM.BarCMapkeydts, func(i, j int) bool {
+			// 按照VDS规定格式解析时间
+			// tm, err := time.Parse("2006.01.02T15:04:05.000", "2023.01.18T09:35:00.000")
+			// dti, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[i])
+			// dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
+			dti, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[i])
+			dtj, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[j])
+			return dti.Before(dtj)
+		})
+	}
+
 }
 
 // 2. 遍历数据

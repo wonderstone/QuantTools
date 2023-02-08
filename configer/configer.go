@@ -66,7 +66,8 @@ func (c *configer) Get(key string) interface{} {
 // GetStringMap returns the value of the key as a map
 func (c *configer) GetStringMap(key string) map[string]interface{} {
 	// the key could be multiple levels, e.g. "a.b.c"
-	tmp := strings.Split(strings.ToLower(key), ".")
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
 	tmpmap := c.unmarshaledContent
 	for _, v := range tmp {
 		tmpmap = tmpmap[v].(map[string]interface{})
@@ -79,7 +80,8 @@ func (c *configer) GetStringMap(key string) map[string]interface{} {
 func (c *configer) GetStringSlice(key string) []string {
 	var res []string
 	// the key could be multiple levels, e.g. "a.b.c"
-	tmp := strings.Split(strings.ToLower(key), ".")
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
 	tmpmap := c.unmarshaledContent
 
 	// iter the tmp, when the last item is reached, return the value
@@ -138,7 +140,8 @@ func (c *configer) GetIntSlice(key string) []int {
 // GetFloat64 returns the value of the key as a float64
 func (c *configer) GetFloat64(key string) float64 {
 	// the key could be multiple levels, e.g. "a.b.c"
-	tmp := strings.Split(strings.ToLower(key), ".")
+	// tmp := strings.Split(strings.ToLower(key), ".")
+	tmp := strings.Split(key, ".")
 	tmpmap := c.unmarshaledContent
 	var res float64
 	// iter the tmp, when the last item is reached, return the value

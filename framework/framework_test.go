@@ -26,7 +26,7 @@ func TestNewRealTimeConfig(t *testing.T) {
 // test PrepareData
 func TestPrepareData(t *testing.T) {
 	bt := NewBackTestConfig("../config/Manual/", "BackTest.yaml", "Default")
-	bt.PrepareData()
+	bt.PrepareData("VDS")
 	assert.Equal(t, "2017/10/9 9:39", bt.BCM.BeginDate)
 
 }

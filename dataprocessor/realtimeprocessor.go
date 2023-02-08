@@ -24,7 +24,7 @@ import (
 // 3. strategy receives the data from channel and process it
 
 // 1. get the history data from source
-func FakeGetHistoryData(dir string) (BarCMap map[string]*BarC, BarCMapkeydts []string) {
+func FakeGetHistoryData(dir string, parseMode string) (BarCMap map[string]*BarC, BarCMapkeydts []string) {
 	// init the BarCMap
 	BarCMap = make(map[string]*BarC)
 	// 1. get the history data from source, this fake data is from csvreader.go
@@ -84,13 +84,15 @@ func FakeGetHistoryData(dir string) (BarCMap map[string]*BarC, BarCMapkeydts []s
 		BarCMapkeydts = append(BarCMapkeydts, k)
 	}
 	// sort the BarCMapkeydts
-	sort.Slice(BarCMapkeydts, func(i, j int) bool {
-		// dti, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[i])
-		// dtj, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[j])
-		dti, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[i])
-		dtj, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[j])
-		return dti.Before(dtj)
-	})
+	if parseMode == "VDS" {
+		sort.Slice(BarCMapkeydts, func(i, j int) bool {
+			// dti, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[i])
+			// dtj, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[j])
+			dti, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[i])
+			dtj, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[j])
+			return dti.Before(dtj)
+		})
+	}
 
 	return BarCMap, BarCMapkeydts
 }

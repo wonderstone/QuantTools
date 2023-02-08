@@ -64,14 +64,19 @@ type BarCM struct {
 	FMTMDataMap   map[string]map[string]float64 // key: datetime, value: map[instrID]MTMprice
 }
 
-func NewBarCM(instSIDS []string, IndiSNames []string, instFIDS []string, IndiFNames []string, beginDate string, endDate string) *BarCM {
-	bd, error := time.Parse("2006.01.02T15:04:05.000", beginDate)
-	if error != nil {
-		panic("beginDate parse error")
-	}
-	ed, error := time.Parse("2006.01.02T15:04:05.000", endDate)
-	if error != nil {
-		panic("endDate parse error")
+func NewBarCM(instSIDS []string, IndiSNames []string, instFIDS []string, IndiFNames []string, beginDate string, endDate string, parsemode string) *BarCM {
+	// init bd and ed time
+	var bd, ed time.Time
+	var err error
+	if parsemode == "VDS" {
+		bd, err = time.Parse("2006.01.02T15:04:05.000", beginDate)
+		if err != nil {
+			panic("beginDate parse error")
+		}
+		ed, _ = time.Parse("2006.01.02T15:04:05.000", endDate)
+		if err != nil {
+			panic("endDate parse error")
+		}
 	}
 
 	//依据分钟级别预估一下数据长度

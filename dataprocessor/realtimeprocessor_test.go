@@ -13,7 +13,7 @@ func TestFakeGetHistoryData(t *testing.T) {
 	dir := "../tmpdata/stockdata/test/"
 	fmt.Println("dir:", dir)
 
-	d, s := FakeGetHistoryData(dir)
+	d, s := FakeGetHistoryData(dir, "VDS")
 	// fmt.Println("d:", d)
 	// fmt.Println("s:", s)
 	for _, v := range s[:30] {
@@ -56,7 +56,7 @@ func TestAddIndicatorsToSData(t *testing.T) {
 	// get the history data
 	dir := "../tmpdata/stockdata/test/"
 	fmt.Println("dir:", dir)
-	dataMap, timeStampSlice := FakeGetHistoryData(dir)
+	dataMap, timeStampSlice := FakeGetHistoryData(dir, "VDS")
 	// get the indiInfoMap
 	IDs := []string{"sh510050"}
 	iis := []indicator.IndiInfo{
