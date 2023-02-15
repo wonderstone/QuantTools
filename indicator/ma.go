@@ -9,7 +9,7 @@
 package indicator
 
 import (
-	cb "github.com/wonderstone/QuantTools/indicator/tools"
+	"github.com/wonderstone/QuantTools/indicator/tools"
 )
 
 // MA is the moving average indicator
@@ -20,7 +20,7 @@ type MA struct {
 
 	// info fields for indicator calculation
 	InfoSlice []string
-	DQ        *cb.Queue
+	DQ        *tools.Queue
 }
 
 // NewMA returns a new MA indicator
@@ -29,7 +29,7 @@ func NewMA(Name string, ParSlice []int, infoslice []string) *MA {
 		Name:      Name,
 		ParSlice:  ParSlice,
 		InfoSlice: infoslice,
-		DQ:        cb.New(ParSlice[0]),
+		DQ:        tools.New(ParSlice[0]),
 	}
 }
 
