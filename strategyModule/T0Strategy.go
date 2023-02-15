@@ -112,6 +112,98 @@ func NewST0StrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 
 func (t0 *ST0Strategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult) {
 
+	// a new day, change all ifReCoverMap to false
+	if t0.lastDate != datetime[:10] {
+		for k := range t0.ifReCoverMap {
+			t0.ifReCoverMap[k] = false
+		}
+	}
+
+	// 获取当前时间并判定是否介于StartTime与StopTime，是则进行常规操作
+	// 否 且大于StopTime,则查看恢复操作状态并进行恢复持仓操作。
+	for instID, SBDE := range bc.Stockdata {
+		if !ContainNaN(SBDE.IndiDataMap) {
+			if t0.IfBT {
+				// 因为T+1,所以不用再担心第一天股票交易时间段下单问题。
+				if !t0.initBTstate[instID] {
+					if datetime[11:] == t0.InitBuyTime {
+						// 买入到持仓
+						tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(t0.holdNumMap[instID]), "Buy", &tmpSCP))
+						t0.initBTstate[instID] = true
+					}
+				}
+			}
+
+			if datetime[11:] >= t0.StartTime && datetime[11:] <= t0.StopTime {
+				// // 常规手动操作
+				// * GEP 引入
+				var GEPSlice = make([]float64, len(t0.IndiNames))
+				for i := 0; i < len(t0.IndiNames); i++ {
+					GEPSlice[i] = SBDE.IndiDataMap[t0.IndiNames[i]]
+				}
+				// 针对slice评估得到数值
+				// do sth about GEPSlice
+				tmps := Eval(GEPSlice)
+				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				buyval := tmps[0] //SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Amount"]/SBDE.IndiDataMap["Volume"]
+				lstbv, bok := t0.lastBuyValue[instID]
+				sellval := tmps[1] //SBDE.IndiDataMap["Close"] - SBDE.IndiDataMap["Open"]
+				lstsv, sok := t0.lastSellValue[instID]
+				TradeN := t0.holdNumMap[instID] / t0.Tlimit //这里选择了第一支股票SHoldNum[0] TradeN为每次交易数量
+
+				if bok && sok {
+					if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						// 买入TradeN
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(TradeN), "Buy", &tmpSCP))
+
+						// tCounter计数器+1
+						t0.tCounter[instID] += 1
+
+						// lastBuyValue 赋值 lastSellValue 赋值
+						t0.lastBuyValue[instID] = buyval
+						t0.lastSellValue[instID] = sellval
+
+						// tState 赋值
+						t0.tState[instID] = 1
+					}
+
+					if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						// 卖出TradeN
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(TradeN), "Sell", &tmpSCP))
+
+						// tCounter计数器+1
+						t0.tCounter[instID] += 1
+
+						// lastBuyValue 赋值 lastSellValue 赋值
+						t0.lastBuyValue[instID] = buyval
+						t0.lastSellValue[instID] = sellval
+
+						// tState 赋值
+						t0.tState[instID] = -1
+					}
+				}
+
+			} else if datetime[11:] > t0.StopTime {
+
+				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				if !t0.ifReCoverMap[instID] {
+					// 恢复持仓
+					netNum := t0.holdNumMap[instID] - int(vAcct.SAcct.PosMap[instID].CalPosPrevNum()+vAcct.SAcct.PosMap[instID].CalPosTdyNum())
+					if netNum > 0 {
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Buy", &tmpSCP))
+					} else if netNum < 0 {
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
+					}
+					t0.ifReCoverMap[instID] = true
+				}
+
+			}
+
+		}
+	}
+
+	t0.lastDate = datetime[:10]
 	return
 }
 
