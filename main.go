@@ -14,6 +14,7 @@ import (
 	"github.com/wonderstone/QuantTools/indicator"
 	"github.com/wonderstone/QuantTools/realinfo"
 
+	"flag"
 	"github.com/wonderstone/QuantTools/framework"
 	"github.com/wonderstone/QuantTools/strategyModule"
 )
@@ -39,9 +40,10 @@ func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 }
 
 func main() {
+	var configdirPtr = flag.String("configdir", "./config/Manual/", "a string")
 	// * **********************This part is for the Backtesting!**********************
 	// * New a manager instance:
-	m := NewManagerfromConfig("default", "default", "./config/Manual/")
+	m := NewManagerfromConfig("default", "default", *configdirPtr)
 	// todo: download the data to tmpdata dir first no matter what the data source is
 	// // pretend the data has been downloaded already
 	// * manager prepares the market data
