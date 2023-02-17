@@ -94,7 +94,7 @@ func NewST0StrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 	if err != nil {
 		panic(err)
 	}
-	tmp := c.GetString(("default.IfBT"))
+	tmp := c.GetString((sec + ".IfBT"))
 	// declear a bool variable
 	var IfBT bool
 	// 如果lower后的值为true或t，则为true
@@ -104,7 +104,7 @@ func NewST0StrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 	} else {
 		IfBT = false
 	}
-	return NewST0Strategy(IfBT, sinstrnames, sindinames, c.GetIntSlice("default.HoldNums"), c.GetInt("default.Tlimit"), c.GetString("default.InitBuyTime"), c.GetString("default.StartTime"), c.GetString("default.StopTime"))
+	return NewST0Strategy(IfBT, sinstrnames, sindinames, c.GetIntSlice(sec+".HoldNums"), c.GetInt(sec+".Tlimit"), c.GetString(sec+".InitBuyTime"), c.GetString(sec+".StartTime"), c.GetString(sec+".StopTime"))
 
 	// return NewST0Strategy(c.GetBool(sec, "IfBT"), c.GetStringSlice(sec, "InstNames"), c.GetStringSlice(sec, "IndiNames"), c.GetIntSlice(sec, "HoldNums"), c.GetInt(sec, "Tlimit"), c.GetString(sec, "StartTime"), c.GetString(sec, "StopTime"))
 

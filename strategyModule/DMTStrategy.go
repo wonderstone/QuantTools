@@ -95,10 +95,10 @@ func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 		panic(err)
 	}
 
-	SNum := c.GetFloat64("default.snum")
-	FNum := c.GetFloat64("default.fnum")
-	STimeCritic := c.GetString("default.stimecritic")
-	FTimeCritic := c.GetString("default.ftimecritic")
+	SNum := c.GetFloat64(sec + ".snum")
+	FNum := c.GetFloat64(sec + ".fnum")
+	STimeCritic := c.GetString(sec + ".stimecritic")
+	FTimeCritic := c.GetString(sec + ".ftimecritic")
 	return NewDMTStrategy(sinstrnames, sindinames, finstrnames, findinames, SNum, FNum, STimeCritic, FTimeCritic)
 }
 

@@ -78,8 +78,8 @@ func NewSimpleStrategyFromConfig(dir string, file string, sec string, StgConfile
 		panic(err)
 	}
 
-	SNum := c.GetFloat64("default.snum")
-	FNum := c.GetFloat64("default.fnum")
+	SNum := c.GetFloat64(sec + ".snum")
+	FNum := c.GetFloat64(sec + ".fnum")
 
 	return SimpleStrategy{
 		SInstNames: sinstrnames,
