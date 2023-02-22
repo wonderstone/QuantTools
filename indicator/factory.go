@@ -45,14 +45,14 @@ func GetIndiInfoSlice(dir string) []IndiInfo {
 	for _, ii := range iis {
 		// convert ii to struct IndiInfo
 		iiMap := ii.(map[string]interface{})
-		PStmp := iiMap["ParSlice"].([]interface{})
+		PStmp := iiMap["parslice"].([]interface{})
 		// convert []interface{} tmp to a new []int
 		var parslice []int
 		for _, v := range PStmp {
 			parslice = append(parslice, v.(int))
 		}
 
-		IStmp := iiMap["InfoSlice"].([]interface{})
+		IStmp := iiMap["infoslice"].([]interface{})
 		// convert []interface{} tmpstring to a new []string
 		var infoslice []string
 		for _, v := range IStmp {
@@ -60,8 +60,8 @@ func GetIndiInfoSlice(dir string) []IndiInfo {
 		}
 
 		indiInfo := IndiInfo{
-			Name:     iiMap["Name"].(string),
-			IndiType: iiMap["IndiType"].(string),
+			Name:     iiMap["name"].(string),
+			IndiType: iiMap["inditype"].(string),
 			// convert tmp to []int
 			ParSlice:  parslice,
 			InfoSlice: infoslice,

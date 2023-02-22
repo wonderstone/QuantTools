@@ -1,14 +1,13 @@
--
-  Name: MA3
-  IndiType: MA
-  ParSlice:
-    - 3
-  InfoSlice:
-    - Close
--
-  Name: Var10
-  IndiType: Var
-  ParSlice:
-    - 10
-  InfoSlice:
-    - Close
+ii:
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA3
+      parslice:
+        - 6
+    - inditype: Var
+      infoslice:
+        - Close
+      name: Var10
+      parslice:
+        - 10
