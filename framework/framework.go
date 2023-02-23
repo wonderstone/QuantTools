@@ -1,6 +1,8 @@
 package framework
 
 import (
+	"fmt"
+
 	"github.com/wonderstone/QuantTools/account"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
@@ -418,7 +420,8 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 
 		//2.0 判断是否符合close或MTM条件 确认是否需收盘
 		if lastdatetime != "" {
-			if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 && strings.Fields(lastdatetime)[0] != strings.Fields(mapkeydt)[0] {
+			if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 && lastdatetime[0:10] != mapkeydt[0:10] {
+				fmt.Println(lastdatetime[0:10])
 				//2.0.1 如果符合 账户进行对应操作
 				VAcct.SAcct.ActOnCM()
 				// DCE: debug info
@@ -428,7 +431,7 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 				}
 			}
 			// 期货这个需要留意一下具体情况
-			if len(BCM.BarCMap[mapkeydt].Futuresdata) != 0 && (strings.Fields(mapkeydt)[1] > "15:15" && strings.Fields(lastdatetime)[1] <= "15:15") {
+			if len(BCM.BarCMap[mapkeydt].Futuresdata) != 0 && (mapkeydt[11:16] > "15:15" && lastdatetime[11:16] <= "15:15") {
 				for _, instrname := range BT.FInstrNames {
 					if v, ok := BCM.FMTMDataMap[mapkeydt][instrname]; ok {
 
@@ -562,7 +565,7 @@ func (RT *RealTime) ActOnRTData(dir string, file string, bc <-chan *dataprocesso
 		//2.0 判断是否符合close或MTM条件 确认是否需收盘
 		if lastdatetime != "" {
 			// 股票收盘
-			if len(data.Stockdata) != 0 && strings.Fields(lastdatetime)[0] != strings.Fields(timestamp)[0] {
+			if len(data.Stockdata) != 0 && lastdatetime[0:10] != timestamp[0:10] {
 				//2.0.1 如果符合 账户进行对应操作
 				RT.VA.SAcct.ActOnCM()
 				// DCE: debug info

@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,4 +30,11 @@ func TestPrepareData(t *testing.T) {
 	bt.PrepareData("VDS")
 	assert.Equal(t, "2017/10/9 9:39", bt.BCM.BeginDate)
 
+}
+
+func TestCutTimeStamp(t *testing.T) {
+	tmp := "2023.01.30T14:08:00.000"
+	fmt.Println(tmp[11:16])
+	fmt.Println(tmp[0:10])
+	assert.Equal(t, "14:08", tmp[11:16])
 }
