@@ -29,11 +29,12 @@ func TestNewStockAccount(t *testing.T) {
 
 	fmt.Printf("Address of res:\t%p\n", &res)
 	expected := StockAccount{
-		InitTime:  "20220515 13:35:27 500",
-		UdTime:    "20220515 13:35:27 500",
-		MktVal:    cash,
-		Fundavail: cash,
-		PosMap:    make(map[string]*PositionSlice),
+		InitTime:        "20220515 13:35:27 500",
+		UdTime:          "20220515 13:35:27 500",
+		MktVal:          cash,
+		Fundavail:       cash,
+		PosMap:          make(map[string]*PositionSlice),
+		RecordOrderMapS: make(map[string][]RecordOrder),
 	}
 	fmt.Printf("Address of expected:\t%p\n", &expected)
 	// file output for zerolog

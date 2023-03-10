@@ -11,6 +11,12 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
+type RecordOrder struct {
+	SO             order.StockOrder
+	Comm           float64
+	RealizedProfit float64
+}
+
 type StockAccount struct {
 	// * 共8个字段  其中  数值类型6个  真实账户核心字段仅保留MktVal、FundAvail
 	InitTime         string
@@ -20,6 +26,7 @@ type StockAccount struct {
 	AllProfit        float64                   // 根据计算更新， 保留可以脱离数据进行查询上一状态的Profit
 	AllCommission    float64                   // 单独标记
 	PosMap           map[string]*PositionSlice //用指针版本
+	RecordOrderMapS  map[string][]RecordOrder  // 用于记录每个订单的执行情况，key是订单号，value是一个订单的执行情况
 	MarketValueSlice []account.MktValDataType
 	// todo： add one tmp UUID field for log testing
 	UUID string
@@ -35,6 +42,7 @@ func NewStockAccount(initTime string, cash float64) StockAccount {
 		Fundavail:        cash,
 		UUID:             uuid.New().String(),
 		PosMap:           make(map[string]*PositionSlice),
+		RecordOrderMapS:  make(map[string][]RecordOrder),
 		MarketValueSlice: []account.MktValDataType{{Time: initTime, MktVal: cash}},
 	}
 }
@@ -122,9 +130,14 @@ func NewSAFromConfig(configdir string, filename string, sec string, cpm cp.CPMap
 
 }
 
-// reset the MarketValueSlice to nil
+// reset the MarketValueSlice to nil 实盘仅保留当前状态 不留历史
 func (SA *StockAccount) ResetMVSlice() {
 	SA.MarketValueSlice = nil
+}
+
+// reset the RecordOrderMapS to nil 实盘仅保留当前状态 不留历史
+func (SA *StockAccount) ResetROMS() {
+	SA.RecordOrderMapS = nil
 }
 
 // 汇总所有Equity
@@ -185,6 +198,8 @@ func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
 			// * 6.修正 MktVal
 			SA.MktVal = SA.Fundavail + SA.Equity()
 			// * 8.不修正字段 MarketValueSlice
+			// * 9.修正 RecordOrderMapS  add a RecordOrder to the RecordOrderMapS
+			SA.RecordOrderMapS[SO.InstID] = append(SA.RecordOrderMapS[SO.InstID], RecordOrder{SO: *SO, Comm: Comm, RealizedProfit: RealizedProfit})
 		}
 	}
 }
