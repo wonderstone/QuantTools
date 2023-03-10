@@ -108,7 +108,7 @@ func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 // 	return tmp[1]
 // }
 
-func getTimeValue(timeString string) string {
+func GetTimeValue(timeString string) string {
 	// get the time value
 	timeValue := timeString[11:16]
 	return timeValue
@@ -245,14 +245,14 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 
 func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult) {
 	// 时间准则判定 stock
-	if getTimeValue(datetime) == dmt.STimeCritic && !dmt.ifsdone {
+	if GetTimeValue(datetime) == dmt.STimeCritic && !dmt.ifsdone {
 		dmt.stimeCondition = true
 	} else if dmt.ifsdone {
 		dmt.stimeCondition = false
 		dmt.ifsdone = false
 	}
 	// 时间准则判定 futures
-	if getTimeValue(datetime) == dmt.FTimeCritic && !dmt.iffdone {
+	if GetTimeValue(datetime) == dmt.FTimeCritic && !dmt.iffdone {
 		dmt.ftimeCondition = true
 	} else if dmt.iffdone {
 		dmt.ftimeCondition = false
