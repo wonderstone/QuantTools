@@ -4,7 +4,25 @@ ii:
         - Close
       name: MA3
       parslice:
-        - 6
+        - 3
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA5
+      parslice:
+        - 5
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA8
+      parslice:
+        - 8
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA10
+      parslice:
+        - 10
     - inditype: Var
       infoslice:
         - Close
