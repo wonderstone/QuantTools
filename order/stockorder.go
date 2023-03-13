@@ -37,6 +37,6 @@ func NewStockOrder(instID string, iseligible bool, isexecuted bool, ordertime st
 
 // cal equity
 func (SO *StockOrder) CalEquity() (Equity float64) {
-	Equity = SO.OrderPrice * SO.OrderNum * SO.ContractSize * 1.01
+	Equity = SO.OrderPrice * SO.OrderNum * SO.ContractSize
 	return Equity
 }
