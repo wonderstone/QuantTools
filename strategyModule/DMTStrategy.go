@@ -130,17 +130,24 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 	} else {
 		dmt.stimeCondition = false
 	}
+
 	// 判断股票标的切片SInstrNames是否为空 并且 时间准则为真，如果为空，则不操作股票数据循环
 	if len(dmt.SInstNames) != 0 && dmt.stimeCondition {
 		// 依据标的循环Data得到数据
 		for instID, SBDE := range bc.Stockdata {
 			// 判断是否数据为NaN，如果为NaN，则跳过
 			if !ContainNaN(SBDE.IndiDataMap) {
+				// * GEP 引入
+				var GEPSlice = make([]float64, len(dmt.SInstNames))
+				for i := 0; i < len(dmt.SInstNames); i++ {
+					GEPSlice[i] = SBDE.IndiDataMap[dmt.SInstNames[i]]
+				}
 				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
-				tradeval := SBDE.IndiDataMap["MA3"] - SBDE.IndiDataMap["MA5"]
+
+				tradeval := Eval(GEPSlice)
 				lsttv, tok := dmt.lastTradeValue[instID]
 				//buy condition check
-				if tok && lsttv < 0 && tradeval > 0 {
+				if tok && lsttv < 0 && tradeval[0] > 0 {
 					//使用该股票可支配的80%资金计算buy_num
 					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / contractproperty.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
 					if buy_num != 0 && SBDE.IndiDataMap["Close"] != 0 {
@@ -157,10 +164,10 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 								Msg("Strategy buy")
 						}
 					}
-					dmt.lastTradeValue[instID] = tradeval
+					dmt.lastTradeValue[instID] = tradeval[0]
 				}
 				//sell condition check
-				if tok && tradeval < 0 && lsttv > 0 {
+				if tok && tradeval[0] < 0 && lsttv > 0 {
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
 							if SBDE.IndiDataMap["Close"] != 0 {
@@ -177,7 +184,7 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 							Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
 							Msg("Strategy sell")
 					}
-					dmt.lastTradeValue[instID] = tradeval
+					dmt.lastTradeValue[instID] = tradeval[0]
 				}
 
 			}
