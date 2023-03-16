@@ -194,7 +194,9 @@ func (SA *StockAccount) ActOnOrder(SO *order.StockOrder) {
 			SA.AllCommission += Comm
 			// * 由价格变动确认profit确定新MV  由价格变动确认Margin，进而确定FundAvail
 			// * 5.修正 Fundavail
-			SA.Fundavail += RealizedProfit - Comm - Equity
+			SA.Fundavail -= Comm + Equity
+
+			// SA.Fundavail += RealizedProfit - Comm - Equity
 			// * 6.修正 MktVal
 			SA.MktVal = SA.Fundavail + SA.Equity()
 			// * 8.不修正字段 MarketValueSlice
