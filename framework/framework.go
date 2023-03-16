@@ -1,7 +1,7 @@
 package framework
 
 import (
-	"fmt"
+	// "fmt"
 	"math"
 
 	"github.com/wonderstone/QuantTools/account"
@@ -28,7 +28,7 @@ import (
 	"github.com/wonderstone/QuantTools/configer"
 )
 
-const debug = true
+const debug = false
 
 // 0. steps: init the backtest struct -> PrepareData -> IterData
 type BackTest struct {
@@ -369,6 +369,9 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 	}
 
 	var lastdatetime string
+	// // for debug !!!!!
+	// var lastprice, lastMV float64
+	// // for debug !!!!!
 	// get a matcher and a temp orderResult
 	simplematcher := matcher.NewSimpleMatcher(BT.MatcherSlippage4S, BT.MatcherSlippage4F)
 	tmpOrderRes := strategyModule.NewOrderResult()
@@ -424,26 +427,27 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			}
 		}
 
-		//  循环股票和期货的orderslice 账户对order进行更新,原则上可以与上面合并 已经合并  测试一下
-		// for i := range tmpOrderRes.StockOrderS {
-		// 	if tmpOrderRes.StockOrderS[i].IsExecuted {
-		// 		VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
-		// 		// this part is for test only
-		// 		log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Stock Order Executed")
-		// 	}
-		// }
-		// for i := range tmpOrderRes.FuturesOrderS {
-		// 	if tmpOrderRes.FuturesOrderS[i].IsExecuted {
-		// 		VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
-		// 	}
-		// }
-
 		//2.0 判断是否符合close或MTM条件 确认是否需收盘
 		if lastdatetime != "" {
 			if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 && lastdatetime[0:10] != mapkeydt[0:10] {
-				fmt.Println(lastdatetime[0:10])
+				// fmt.Println(lastdatetime[0:10])
 				//2.0.1 如果符合 账户进行对应操作
+
 				VAcct.SAcct.ActOnCM()
+				// for debug !!!!!
+				// rorMV := VAcct.SAcct.MarketValueSlice[len(VAcct.SAcct.MarketValueSlice)-1].MktVal/lastMV - 1
+
+				// for _, barC := range BCM.BarCMap[mapkeydt].Stockdata {
+				// 	rorP := barC.IndiDataMap["Close"]/lastprice - 1
+				// 	if rorP < rorMV && rorP > 0 {
+				// 		log.Info().Str("TimeStamp:", mapkeydt).Float64("RoR for MV:", rorMV).Msg("Market Close")
+				// 		log.Info().Str("TimeStamp", mapkeydt).Float64("LastPrice", lastprice).Float64("Price", barC.IndiDataMap["Close"]).Float64("RoR", rorP).Msg("Debug!!!!!!!")
+
+				// 	}
+				// 	lastprice = barC.IndiDataMap["Close"]
+				// }
+				// lastMV = VAcct.SAcct.MktVal
+				// for debug !!!!!
 				// DCE: debug info
 				if debug {
 					// this part is for test only
@@ -497,6 +501,8 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 							Msg("Account")
 					}
 				}
+				// for debug!!!!!!!!!
+
 			}
 		}
 		if len(BCM.BarCMap[mapkeydt].Futuresdata) != 0 {
@@ -525,6 +531,7 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 			log.Info().Str("Account UUID", VAcct.SAcct.UUID).Str("TimeStamp", mapkeydt).Msg("Strategy ActOnData Finished")
 		}
 		lastdatetime = mapkeydt
+
 	}
 
 }
