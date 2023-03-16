@@ -138,9 +138,9 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 			// 判断是否数据为NaN，如果为NaN，则跳过
 			if !ContainNaN(SBDE.IndiDataMap) {
 				// * GEP 引入
-				var GEPSlice = make([]float64, len(dmt.SInstNames))
-				for i := 0; i < len(dmt.SInstNames); i++ {
-					GEPSlice[i] = SBDE.IndiDataMap[dmt.SInstNames[i]]
+				var GEPSlice = make([]float64, len(dmt.SIndiNames))
+				for i := 0; i < len(dmt.SIndiNames); i++ {
+					GEPSlice[i] = SBDE.IndiDataMap[dmt.SIndiNames[i]]
 				}
 				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
 
@@ -164,7 +164,7 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 								Msg("Strategy buy")
 						}
 					}
-					dmt.lastTradeValue[instID] = tradeval[0]
+
 				}
 				//sell condition check
 				if tok && tradeval[0] < 0 && lsttv > 0 {
@@ -184,8 +184,9 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 							Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
 							Msg("Strategy sell")
 					}
-					dmt.lastTradeValue[instID] = tradeval[0]
+
 				}
+				dmt.lastTradeValue[instID] = tradeval[0]
 
 			}
 		}

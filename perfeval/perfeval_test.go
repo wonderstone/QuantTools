@@ -3,6 +3,7 @@ package perfeval
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/wonderstone/QuantTools/account"
@@ -59,4 +60,13 @@ func TestNewPerfEval(t *testing.T) {
 		t.Error("CalcPerfEvalResult failed")
 	}
 
+}
+
+// split "2009.08.18T15:00:00.000" with T
+func TestSplit(t *testing.T) {
+	s := "2009.08.18T15:00:00.000"
+	s1 := strings.Split(s, "T")
+	if s1[0] != "2009.08.18" {
+		t.Error("Split failed")
+	}
 }

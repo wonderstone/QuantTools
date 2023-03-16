@@ -87,11 +87,11 @@ func (PE *PerfEval) Len() int {
 }
 
 func (PE *PerfEval) Less(i, j int) bool {
-	datei, erri := time.Parse("2006/1/2", strings.Fields(PE.MktValSlice[i].Time)[0]) // golang的时间format是数值固定的 与python不一致
+	datei, erri := time.Parse("2006.01.02", strings.Split(PE.MktValSlice[i].Time, "T")[0]) // golang的时间format是数值固定的 与python不一致
 	if erri != nil {
 		panic(erri)
 	}
-	datej, errj := time.Parse("2006/1/2", strings.Fields(PE.MktValSlice[j].Time)[0])
+	datej, errj := time.Parse("2006.01.02", strings.Split(PE.MktValSlice[j].Time, "T")[0])
 	if errj != nil {
 		panic(errj)
 	}

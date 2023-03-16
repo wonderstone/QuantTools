@@ -9,7 +9,7 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
-const debug = true
+const debug = false
 
 type OrderResult struct {
 	StockOrderS   []order.StockOrder
