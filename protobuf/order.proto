@@ -1,0 +1,23 @@
+syntax = "proto3";
+option go_package = "./;vdsdata";
+import "def.proto";
+//逐笔委托
+message VDSOrder{
+    string symbol = 1;  //代码
+    Exch    exch = 2;   //市场
+    ///消息序号  
+    //SH:逐笔成交单独序号， 在同一个 ChannelNo 内唯一,从 1 开始连续.
+    //SZ:逐笔成交与委托统一序号， 在同一个 ChannelNo 内唯一， 从 1 开始连续
+    int64   seqno = 3;  
+    int32   channalno = 4;//频道
+    int32   tradedate = 5;//交易日期
+    int32   updatetime = 6;//更新时间
+    double  price = 7;
+    double  trdvol = 8;
+    double  trdmoney = 9;
+    //int64   trdbuyno =10;
+    //int64   trdsellno =11;
+    VDSOrdType ordtype = 12;
+    VDSOrdSide ordside = 13;
+    int64   bizindex = 20;
+}

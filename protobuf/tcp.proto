@@ -1,0 +1,49 @@
+syntax = "proto3";
+import "def.proto";
+import "statcode.proto";
+import "kline.proto";
+option go_package = "./;vdsdata";
+//len(4)byte+protobuf
+//约定symbol格式为 XXXXXX.SH(SZ\BJ)
+//所有请求入口
+message VDSTcp{
+    VDSInterfaceType itype = 1; //接口类型
+    bytes data=2; //协议数据
+    bytes userdata = 6;//用户参数，透传返回
+}
+message VDSRsp{
+    int32 code = 1;
+    int32 msg = 2;
+    VDSInterfaceType itype = 3; //接口类型
+    bytes data=4; //协议数据
+    string userdata = 5;//用户参数，透传返回
+}
+//订阅类请求
+message VDSSub{
+      string symbol = 1;  //代码
+      Exch    exch = 2;   //市场
+      VDSSecType sectype =3;//标的分类
+}
+//登录
+message VDSLogon{
+    string name = 1;  //用户名 
+    string    passwd = 2;   //密码
+}
+//请求静态码表 itype=ReqStatCode
+message VDSReqStatCode{
+    string symbol = 1;  //代码 
+    Exch    exch = 2;   //市场
+}
+message VDSRspStatCode{
+    repeated VDSStatCode  dots=1; //码表列表
+}
+message VDSReqKLine{
+    string symbol = 1;  //代码
+    VDSKLineType ktype = 2;
+    int32 start = 3;
+    int32 end = 4;
+    int32 count = 5;
+}
+message VDSRspKLine{
+    repeated VDSKLine  dots=1; //码表列表
+}

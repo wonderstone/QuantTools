@@ -81,7 +81,6 @@ func NewManagerfromConfig(secBT string, secSTG string, dir string) *manager {
 // validateFunc is used to provide the fitness function for the GEP
 // it gets needed data and strategy action from the manager struct	and return the fitness
 func (m *manager) validateFunc(g *genome.Genome) (result float64) {
-	// var mutex sync.Mutex
 	// new a strategy from backtest
 	pstg := m.BT.GetStrategy(m.dir, "BackTest.yaml", m.secSTG, "Strategy.yaml", "DMT")
 	// new virtual account

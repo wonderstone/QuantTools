@@ -1,0 +1,7 @@
+syntax = "proto3";
+option go_package = "./;vdsdata";
+//指标
+message Indicator{
+    string  symbol = 1;  //代码
+
+}

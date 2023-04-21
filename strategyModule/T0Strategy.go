@@ -1,7 +1,7 @@
 package strategyModule
 
 import (
-	// "math"
+	"math"
 	"strings"
 
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
@@ -191,9 +191,9 @@ func (t0 *ST0Strategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct 
 					// 恢复持仓
 					netNum := t0.holdNumMap[instID] - int(vAcct.SAcct.PosMap[instID].CalPosPrevNum()+vAcct.SAcct.PosMap[instID].CalPosTdyNum())
 					if netNum > 0 {
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Buy", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], float64(netNum), "Buy", &tmpSCP))
 					} else if netNum < 0 {
-						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP))
+						orderRes.StockOrderS = append(orderRes.StockOrderS, order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], math.Abs(float64(netNum)), "Sell", &tmpSCP))
 					}
 					t0.ifReCoverMap[instID] = true
 				}

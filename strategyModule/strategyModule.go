@@ -49,6 +49,9 @@ func GetStrategy(dir string, BTConfile string, sec string, StgConfile string, ta
 	case "DMT":
 		s := NewDMTStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 		return &s
+	case "T0":
+		t := NewST0StrategyFromConfig(dir, BTConfile, sec, StgConfile)
+		return &t
 	default:
 		return NewSimpleStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 	}

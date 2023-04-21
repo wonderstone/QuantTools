@@ -1,0 +1,22 @@
+syntax = "proto3";
+import "def.proto";
+option go_package = "./;vdsdata";
+message VDSLevel{
+    double price=1; //价格
+    int32  vol = 2; //量
+}
+//快照
+message VDSSnapshot{ 
+    string symbol = 1;  //代码 600000
+    Exch    exch = 2;   //市场 SH SZ BJ
+    double  last = 3; //最新
+    double  open = 4;//开盘价
+    double  high = 5;//最高价
+    double  low = 6;//最低价
+    double  close = 7;//收盘价
+    double  preclose = 8;//昨收
+    map<int32,VDSLevel> buylevel=10; //五档/十档买盘口
+    map<int32,VDSLevel> selllevel=11;//五档/十档卖盘口
+    int32   date = 12; //交易日期 20221208
+    int32   uptetime = 13; //更新时间 100102368
+}
