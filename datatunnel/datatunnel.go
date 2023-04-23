@@ -2,11 +2,12 @@ package datatunnel
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"time"
-	"unsafe"
 
 	"github.com/wonderstone/QuantTools/vdsdata"
 	"google.golang.org/protobuf/proto"
@@ -216,36 +217,70 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool) {
 					Userdata: []byte{},
 				}
 				sData, err := proto.Marshal(tcp)
+				if err != nil {
+					panic(err)
+				}
+
 				slen := len(sData)
-				var d [4]byte
-				p := unsafe.Pointer(&slen)
-				q := (*[4]byte)(p)
+				// var d [4]byte
+				// p := unsafe.Pointer(&slen)
+				// q := (*[4]byte)(p)
+
+				q2 := IntToBytes(slen)
+				// fmt.Println(q2)
+				// turn slen into byte array with 4 bytes
+
 				//fmt.Println(p, q)
-				copy(d[0:], (*q)[0:])
+				// copy(d[0:], (*q)[0:])
+
 				//blen := bytes(slen)
-				var b bytes.Buffer
-				b.Write([]byte(d[:]))
-				b.Write([]byte(sData))
+				var c bytes.Buffer
+
+				// b.Write([]byte(d[:]))
+				// b.Write([]byte(sData))
+
+				c.Write(q2)
+				c.Write([]byte(sData))
+
 				//fmt.Println(b.Bytes())
-				conn.Write([]byte(b.Bytes()))
-				buf := make([]byte, 40960, 40960)
+				conn.Write([]byte(c.Bytes()))
+				// buf := make([]byte, 40960, 40960)
+
+				// reader := bufio.NewReader(conn)
 				//var data_storage map[string]vdsdata.VDSSnapshot
 				for {
-					//读消息
-					_, err := conn.Read(buf)
+					//读消息头
+					datalen := make([]byte, 4)
+					_, err := io.ReadFull(conn, datalen)
 					if err != nil {
 						panic(err)
 					}
-					//fmt.Println(buf)
-					//buf = buf[4:]
-					//fmt.Println("Recv data len:", cnt)
+					// turn datalen into int
+					dtlen := BytesToInt(datalen)
+
+					buf := make([]byte, dtlen)
+					// _, err = reader.Read(buf)
+					_, err0 := io.ReadFull(conn, buf)
+					if err0 != nil {
+						panic(err0)
+					}
+					// 数据解析转换
 					var s = vdsdata.VDSTcp{}
-					err = proto.Unmarshal(buf, &s)
+					err2 := proto.Unmarshal(buf, &s)
+					if err2 != nil {
+						panic(err2)
+					}
+
 					var snapshot vdsdata.VDSSnapshot
-					err = proto.Unmarshal(s.Data, &snapshot)
+					err2 = proto.Unmarshal(s.Data, &snapshot)
+					// if err1 != nil {
+					// 	panic(err1)
+					// }
 					//fmt.Println(snapshot.Date, snapshot.Buylevel, snapshot.Close, snapshot.Exch, snapshot.Symbol, snapshot.Open)
 					if snapshot.Uptetime != 0 {
 						fmt.Println(snapshot.Uptetime, snapshot.Symbol)
+						// print all snapshot data
+						fmt.Printf("Symbol: %s, Date: %d, Time: %d, Open: %f, High: %f, Low: %f, Preclose: %f  \n", snapshot.Symbol, snapshot.Date, snapshot.Uptetime, snapshot.Open, snapshot.High, snapshot.Low, snapshot.Preclose)
 					}
 					if snapshot.Symbol == "600000" {
 						fmt.Println(snapshot.Last, snapshot.Symbol)
@@ -255,4 +290,21 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool) {
 		}
 	}
 
+}
+
+// turn an int32 into a byte array with 4 bytes
+
+func IntToBytes(n int) []byte {
+	x := int32(n)
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.LittleEndian, x)
+	return bytesBuffer.Bytes()
+}
+
+// turn a byte array with 4 bytes into an int32
+func BytesToInt(b []byte) int {
+	bytesBuffer := bytes.NewBuffer(b)
+	var x int32
+	binary.Read(bytesBuffer, binary.LittleEndian, &x)
+	return int(x)
 }

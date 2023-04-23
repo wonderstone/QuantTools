@@ -90,3 +90,20 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 	assert.Equal(t, len(dt.StgM), 2)
 
 }
+
+// test GetTargetsData
+
+func TestGetTargetsData(t *testing.T) {
+	// ip
+	ip := "123.138.216.197"
+	// port
+	port := 9009
+	// channel
+	ch := make(chan bool)
+	// new a data tunnel
+	dt := NewDataTunnel()
+
+	// test GetTargetsData
+	dt.GetTargetsData(ip, port, ch)
+
+}
