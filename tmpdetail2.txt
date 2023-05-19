@@ -1,0 +1,13 @@
+{"level":"info","time":"2023-05-19T14:50:07+08:00","message":"Data Prepared!"}
+{"level":"info","Account UUID":"a30846d1-948b-45b4-b3d5-6fd874107ede","AccountVal":100000000,"time":"2023-05-19T14:50:07+08:00","message":"Virtual Account Created!"}
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x2 addr=0x20 pc=0x1001eea8c]
+
+goroutine 1 [running]:
+github.com/wonderstone/QuantTools/strategyModule.(*SortBuyStrategy).ActOnDataMAN(0x14000172120, {0x1400017ec30, 0x17}, 0x14007740490, 0x140106d0000, {0x140105d76e0?, 0x140105d7710?})
+	/Users/wonderstone/QuantTools/strategyModule/sortBuyFix.go:216 +0xf0c
+github.com/wonderstone/QuantTools/framework.(*BackTest).IterData(0x14000166000, 0x140106d0000, 0x140000ae000, {0x1002621f0, 0x14000172120}, {0x140105d76e0?, 0x140105d7710?}, 0x0?, {0x1001f47cc, 0x6})
+	/Users/wonderstone/QuantTools/framework/framework.go:536 +0x59c
+main.main()
+	/Users/wonderstone/QuantTools/main_sb.go:55 +0x20c
+exit status 2

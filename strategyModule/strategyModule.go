@@ -9,7 +9,7 @@ import (
 	"github.com/wonderstone/QuantTools/order"
 )
 
-const debug = false
+const debug = true
 
 type OrderResult struct {
 	StockOrderS   []order.StockOrder
@@ -35,6 +35,16 @@ func ContainNaN(m map[string]float64) bool {
 	return false
 }
 
+// update the stock account
+func UpdateAcct(bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct) {
+	for _, v := range bc.Stockdata {
+		vAcct.SAcct.ActOnUpdateMI(v.BarTime, v.InstID, v.IndiDataMap["Close"])
+	}
+	for _, v := range bc.Futuresdata {
+		vAcct.FAcct.ActOnUpdateMI(v.BarTime, v.InstID, v.IndiDataMap["Close"])
+	}
+}
+
 // 此处设计强制要求形式上有GEP和Manual两类，如果真不想写，对应的地方留空即可
 type IStrategy interface {
 	ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult)
@@ -52,6 +62,9 @@ func GetStrategy(dir string, BTConfile string, sec string, StgConfile string, ta
 	case "T0":
 		t := NewST0StrategyFromConfig(dir, BTConfile, sec, StgConfile)
 		return &t
+	case "SortBuy":
+		sb := NewSortBuyStrategyFromConfig(dir, BTConfile, sec, StgConfile)
+		return &sb
 	default:
 		return NewSimpleStrategyFromConfig(dir, BTConfile, sec, StgConfile)
 	}

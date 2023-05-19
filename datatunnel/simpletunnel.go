@@ -294,8 +294,21 @@ func (dt *DataTunnel) GetStgNames(TargetName string, FreqType string) {
 	InfoFTKey := InfoFT{TargetName, FreqType}
 	// iter all the stgNames in InfoM and update the data
 	for k := range dt.InfoM[InfoFTKey] {
-
+		fmt.Println(k)
+		// dt.cachDataMap[k] = make(map[string]map[string]float64)
 	}
+
+}
+
+// TimeTrigger check
+func (dt *DataTunnel) TimeTrigger(ts string) bool {
+	// check if the ts is in the TimeTriggerMap
+
+	return true
+}
+
+// 指标链处理函数
+func (dt *DataTunnel) IndicatorChainHandler() {
 
 }
 

@@ -398,7 +398,10 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 						Msg("Match details")
 				}
 				VAcct.SAcct.CheckEligible(&tmpOrderRes.StockOrderS[i])
-				simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], matchinfo.IndiDataMap["Open"], mapkeydt)
+				// 存在数据时才撮合
+				if v, isOk := matchinfo.IndiDataMap["Open"]; isOk {
+					simplematcher.MatchStockOrder(&tmpOrderRes.StockOrderS[i], v, mapkeydt)
+				}
 				//
 				// tmpOrderRes.IsExecuted = true
 				VAcct.SAcct.ActOnOrder(&tmpOrderRes.StockOrderS[i])
@@ -420,7 +423,10 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 					}
 				}
 				VAcct.FAcct.CheckEligible(&tmpOrderRes.FuturesOrderS[i])
-				simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], matchinfo.IndiDataMap["open"], mapkeydt)
+				// 存在数据时才撮合
+				if v, isOk := matchinfo.IndiDataMap["open"]; isOk {
+					simplematcher.MatchFuturesOrder(&tmpOrderRes.FuturesOrderS[i], v, mapkeydt)
+				}
 				// tmpOrderRes.IsExecuted = true
 				VAcct.FAcct.ActOnOrder(&tmpOrderRes.FuturesOrderS[i])
 
@@ -476,7 +482,10 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 							Msg("NaN in indicator data")
 					}
 				}
-				VAcct.SAcct.ActOnUpdateMI(mapkeydt, instID, barC.IndiDataMap["Close"])
+				// 数据存在时才更新
+				if v, ok := barC.IndiDataMap["Close"]; ok {
+					VAcct.SAcct.ActOnUpdateMI(mapkeydt, instID, v)
+				}
 				// DCE: debug info
 				if debug {
 					// this part is for test only
@@ -513,7 +522,10 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 							Msg("NaN in indicator data")
 					}
 				}
-				VAcct.FAcct.ActOnUpdateMI(mapkeydt, instID, barC.IndiDataMap["close"])
+				// 数据存在时才更新
+				if v, ok := barC.IndiDataMap["close"]; ok {
+					VAcct.FAcct.ActOnUpdateMI(mapkeydt, instID, v)
+				}
 			}
 		}
 		//  2.2 策略接收数据并经过ActOnData得到对应账户的orderslice

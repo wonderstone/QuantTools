@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/stockaccount"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
-	"github.com/wonderstone/QuantTools/contractproperty"
 	cp "github.com/wonderstone/QuantTools/contractproperty"
 	"github.com/wonderstone/QuantTools/dataprocessor"
 
@@ -149,7 +148,7 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 				//buy condition check
 				if tok && lsttv < 0 && tradeval[0] > 0 {
 					//使用该股票可支配的80%资金计算buy_num
-					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / contractproperty.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
+					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
 					if buy_num != 0 && SBDE.IndiDataMap["Close"] != 0 {
 						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], buy_num, "Buy", &tmpSCP)
 						dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)
@@ -218,7 +217,7 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 				//buy condition check
 				if tok && lsttv < 0 && tradeval > 0 {
 					//使用该股票可支配的80%资金计算buy_num
-					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / contractproperty.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * 0.8)
+					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * 0.8)
 					if buy_num != 0 && SBDE.IndiDataMap["Close"] != 0 {
 						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], buy_num, "Buy", &tmpSCP)
 						dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)

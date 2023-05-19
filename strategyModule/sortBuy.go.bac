@@ -1,0 +1,281 @@
+package strategyModule
+
+// market timing strategy
+// one expression for one strategy, therefore one market for one strategy
+import (
+	//"fmt"
+	// "fmt"
+	"fmt"
+	"math"
+	"sort"
+
+	// "github.com/rs/zerolog/log"
+	"github.com/wonderstone/QuantTools/account/stockaccount"
+	"github.com/wonderstone/QuantTools/account/virtualaccount"
+	"github.com/wonderstone/QuantTools/contractproperty"
+	cp "github.com/wonderstone/QuantTools/contractproperty"
+	"github.com/wonderstone/QuantTools/dataprocessor"
+	"github.com/wonderstone/QuantTools/order"
+
+	"github.com/wonderstone/QuantTools/configer"
+)
+
+type Pair struct {
+	Key   string
+	Value float64
+	Price float64
+}
+type PairList []Pair
+type SortBuyStrategy struct {
+	init_money  float64  //初始资金
+	SInstNames  []string // 股票标的名称
+	SIndiNames  []string // 股票参与GEP指标名称，注意其数量不大于BarDE内信息数量，且strategy内可见BarDE的数据
+	STimeCritic string   // 时间关键字，用于判断是否需要进行交易
+
+	stimeCondition  bool    //排序买入的时间条件是否已经满足
+	numHolding      int     //持仓标的数量
+	max_min_ratio   float64 //最大最小比例
+	cash_used_ratio float64 //使用账户总资金比例
+	holdingsM       map[string]float64
+	targetsM        map[string]float64
+	targetsS        []string
+	holdingRatios   []float64
+}
+
+func NewSortBuyStrategy(init_money float64, SInstNms []string, SIndiNms []string, STimeCritic string,
+	numHolding int, ratio float64, cash_used_ratio float64) SortBuyStrategy {
+	return SortBuyStrategy{
+		init_money:      init_money,
+		SInstNames:      SInstNms,
+		SIndiNames:      SIndiNms,
+		STimeCritic:     STimeCritic,
+		stimeCondition:  false,
+		numHolding:      numHolding,
+		max_min_ratio:   ratio,
+		cash_used_ratio: cash_used_ratio,
+		holdingsM:       make(map[string]float64),
+		targetsM:        make(map[string]float64),
+		holdingRatios:   arithmeticSequence(numHolding, ratio),
+	}
+}
+
+// this function is nessary for the framework
+func NewSortBuyStrategyFromConfig(dir string, BTConfile string, sec string, StgConfile string) SortBuyStrategy {
+	c := configer.New(dir + BTConfile)
+	err := c.Load()
+	if err != nil {
+		panic(err)
+	}
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	tmpMap := c.GetStringMap(sec)
+	init_money := c.GetFloat64("default.stockinitvalue")
+	var sinstrnames []string
+
+	for _, v := range tmpMap["sinstrnames"].([]interface{}) {
+		sinstrnames = append(sinstrnames, v.(string))
+	}
+	var sindinames []string
+	for _, v := range tmpMap["sindinames"].([]interface{}) {
+		sindinames = append(sindinames, v.(string))
+	}
+	c = configer.New(dir + StgConfile)
+	err = c.Load()
+	if err != nil {
+		panic(err)
+	}
+	err = c.Unmarshal()
+	if err != nil {
+		panic(err)
+	}
+	tmpMap = c.GetStringMap(sec)
+	STimeCritic := c.GetString("default.stimecritic")
+	numHolding := c.GetInt("default.numHolding")
+	ratio := c.GetFloat64("default.ratio")
+	cash_used_ratio := c.GetFloat64("default.cash_used_ratio")
+	return NewSortBuyStrategy(init_money, sinstrnames, sindinames, STimeCritic, numHolding, ratio, cash_used_ratio)
+}
+
+func (sortbuy *SortBuyStrategy) CheckEligible(s_name string, o *order.StockOrder, SA *stockaccount.StockAccount) {
+	switch o.OrderDirection {
+	case "Buy":
+		if o.CalEquity() <= SA.Fundavail {
+			o.IsEligible = true
+		}
+	case "Sell":
+		o.IsEligible = true
+	}
+}
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+func (sortbuy *SortBuyStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult) {
+	return orderRes
+
+}
+
+func (sb *SortBuyStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult) {
+
+	UpdateAcct(bc, vAcct)
+	// iter vAcct to get holdingsM
+	for k, v := range vAcct.SAcct.PosMap {
+		// 日线级 问题不大
+		sb.holdingsM[k] = v.CalPosTdyNum() + v.CalPosPrevNum()
+		if sb.holdingsM[k] == 0 {
+			delete(sb.holdingsM, k)
+		}
+	}
+
+	//check the datetime is the executable time
+	if GetTimeValue(datetime) == sb.STimeCritic {
+		sb.stimeCondition = true
+	} else {
+		sb.stimeCondition = false
+	}
+
+	// 判断股票标的切片SInstrNames是否为空 并且 时间准则为真，如果为空，则不操作股票数据循环
+	if len(sb.SInstNames) != 0 && sb.stimeCondition {
+		// s_sort_buy := make(map[string]float64, len(sb.SInstNames))
+		// check if the length of the stockdata is bigger than 1
+		if len(bc.Stockdata) < 1 {
+			panic("data error! the length of the stockdata is smaller than 1")
+		} else if len(bc.Stockdata) == 1 {
+			for instID, SBDE := range bc.Stockdata {
+				tmpSCP := contractproperty.SimpleNewSCPFromMap(CPMap, instID)
+				targetValue := vAcct.SAcct.MktVal * sb.cash_used_ratio
+				sb.targetsM[instID] = math.Floor(((targetValue / SBDE.IndiDataMap["Close"]) / contractproperty.SimpleNewSCPFromMap(CPMap, instID).ContractSize))
+				if _, ok := sb.holdingsM[instID]; !ok {
+					new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], sb.targetsM[instID], "Buy", &tmpSCP)
+					orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+
+				} else {
+					if sb.holdingsM[instID] < sb.targetsM[instID] {
+						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], math.Abs(sb.targetsM[instID]-sb.holdingsM[instID]), "Buy", &tmpSCP)
+						orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+
+					} else if sb.holdingsM[instID] > sb.targetsM[instID] {
+						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], math.Abs(sb.targetsM[instID]-sb.holdingsM[instID]), "Sell", &tmpSCP)
+						orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+					}
+				}
+				// sb.holdingsM[instID] = sb.targetsM[instID]
+
+			}
+		} else {
+			// 得到数据个数
+			n := len(bc.Stockdata)
+			// 修改holdingRatios
+			if n < sb.numHolding {
+				sb.holdingRatios = arithmeticSequence(n, sb.max_min_ratio)
+
+			} else {
+				sb.holdingRatios = arithmeticSequence(sb.numHolding, sb.max_min_ratio)
+			}
+			// 循环标的产生PL 标的排序并得到对应标的的持仓比例
+			PL := PairList{}
+			for instID, SBDE := range bc.Stockdata {
+				if !ContainNaN(SBDE.IndiDataMap) {
+					PL = append(PL, Pair{Key: instID, Value: SBDE.IndiDataMap["MA5"] / SBDE.IndiDataMap["Close"], Price: SBDE.IndiDataMap["Close"]})
+				}
+			}
+			// 对PairList进行排序
+			sort.Sort(PL)
+			// DCE: debug info
+			// if debug {
+			// 	// this part is for test only
+			// 	log.Info().Str("PL", fmt.Sprintln(PL)).Str("TimeStamp", datetime).
+			// 		Msg("Sorting details")
+			// }
+			// 循环PL，得到对应标的的持仓比例
+			tmptargetM := make(map[string]float64)
+			tmptargetS := []string{}
+			totalValue := vAcct.SAcct.MktVal * sb.cash_used_ratio
+			for i := 0; i < len(sb.holdingRatios); i++ {
+				tmptargetM[PL[len(PL)-i-1].Key] = math.Floor(((totalValue * sb.holdingRatios[len(sb.holdingRatios)-i-1] / PL[len(PL)-i-1].Price) / contractproperty.SimpleNewSCPFromMap(CPMap, PL[len(PL)-i-1].Key).ContractSize))
+				tmptargetS = append(tmptargetS, PL[len(PL)-i-1].Key)
+			}
+			sb.targetsM = tmptargetM
+			sb.targetsS = tmptargetS
+			// if debug {
+			// 	// this part is for test only
+			// 	log.Info().Str("targetsM ", fmt.Sprintln(sb.targetsM)).Str("TimeStamp", datetime).
+			// 		Msg("Sorting details")
+			// }
+			// 循环持仓holdingsM，对比targetsM得到卖出方向的订单
+			for instID := range sb.holdingsM {
+				if _, ok := sb.targetsM[instID]; !ok {
+					if math.Abs(sb.holdingsM[instID]) != 0 {
+						tmpSCP1 := contractproperty.SimpleNewSCPFromMap(CPMap, instID)
+						new_order := order.NewStockOrder(instID, false, false, datetime, bc.Stockdata[instID].IndiDataMap["Close"], sb.holdingsM[instID], "Sell", &tmpSCP1)
+						orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+					}
+
+				} else if sb.holdingsM[instID] > sb.targetsM[instID] {
+					tmpSCP2 := contractproperty.SimpleNewSCPFromMap(CPMap, instID)
+					new_order := order.NewStockOrder(instID, false, false, datetime, bc.Stockdata[instID].IndiDataMap["Close"], (sb.holdingsM[instID] - sb.targetsM[instID]), "Sell", &tmpSCP2)
+					orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+				}
+			}
+			// 循环targetsM，对比holdingsM得到买入方向的订单
+			for _, instID := range sb.targetsS {
+				if _, ok := sb.holdingsM[instID]; !ok {
+					if sb.targetsM[instID] != 0 {
+						tmpSCP3 := contractproperty.SimpleNewSCPFromMap(CPMap, instID)
+						new_order := order.NewStockOrder(instID, false, false, datetime, bc.Stockdata[instID].IndiDataMap["Close"], sb.targetsM[instID], "Buy", &tmpSCP3)
+						orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+					}
+
+				} else if sb.holdingsM[instID] < sb.targetsM[instID] {
+					tmpSCP4 := contractproperty.SimpleNewSCPFromMap(CPMap, instID)
+					new_order := order.NewStockOrder(instID, false, false, datetime, bc.Stockdata[instID].IndiDataMap["Close"], math.Abs(sb.targetsM[instID]-sb.holdingsM[instID]), "Buy", &tmpSCP4)
+					orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+				}
+			}
+		}
+	}
+	// if debug {
+	// 	// this part is for test only
+	// 	log.Info().Str("account details ", outputMap(vAcct.SAcct.PosMap)).Str("TimeStamp", datetime).
+	// 		Msg("account details")
+	// }
+	// fmt.Println("")
+	return orderRes
+}
+
+// 函数：give an arithmetic sequence with n elements, whose all elements add up equals to 100, and the first element is 2 times bigger than the last element
+func arithmeticSequence(n int, ratio float64) []float64 {
+	// 1. create a slice with n elements
+	slice := make([]float64, n)
+
+	if n < 1 {
+		panic("n must be bigger than 1")
+	} else if n == 1 {
+		slice[0] = 1
+		return slice
+	} else {
+		// 2. calculate the first element
+		first_element := 2.0 / (float64(n) * (1 + ratio))
+		// 3. calculate the difference between the first element and the last element
+		diff := first_element*ratio - first_element
+		// 4. calculate the common difference
+		d := diff / float64(n-1)
+		// 5. calculate the arithmetic sequence
+		for i := 0; i < n; i++ {
+			slice[i] = first_element + float64(i)*d
+		}
+		return slice
+	}
+}
+
+// func output  a map[string]*stockaccount.PositionSlice as string
+
+func outputMap(m map[string]*stockaccount.PositionSlice) string {
+	var output string
+	for k, v := range m {
+		output += fmt.Sprintf("instID: %s, tdyPosition: %v, prePosition: %v\n", k, v.CalPosTdyNum(), v.CalPosPrevNum())
+	}
+	return output
+}

@@ -1,0 +1,8 @@
+---
+# viper's GetStringMap function makes key value lowercase
+default:
+    numHolding:  5
+    max_min_ratio:  2.0
+    position_ratio:  0.8
+    stimecritic:  "14:50"
+
