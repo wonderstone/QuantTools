@@ -4,7 +4,7 @@
 # SCsvDatafields: given by other code or duplicate from the csv header
 default:
     #  Section for virtual account 
-    stockinitvalue:  100000000.0
+    stockinitvalue:  10000.0
     futuresinitvalue:  0.0  
     #  Section for data range, when downloading data from VDS
     begindate:  "2005.01.01T09:35:00.000" 

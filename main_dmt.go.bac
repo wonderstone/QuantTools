@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/wonderstone/QuantTools/account/virtualaccount"
@@ -52,4 +53,7 @@ func main() {
 	// 	&va.SAcct.PosMap.append()
 	// }
 	m.BT.IterData(&va, m.BT.BCM, pstg, m.BT.CPMap, func(in []float64) []float64 { return nil }, "Manual")
+	for _, v := range va.SAcct.MarketValueSlice {
+		fmt.Println(v)
+	}
 }

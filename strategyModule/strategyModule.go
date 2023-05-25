@@ -45,6 +45,53 @@ func UpdateAcct(bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct) {
 	}
 }
 
+// net the orders
+func NetSOrders(os []order.StockOrder) []order.StockOrder {
+	// 注意同一时刻是不需要check ordertime的
+	var res []order.StockOrder
+	// orders with the same id will be netted
+	// * this is a map for the orders
+	// * key: orderID
+	// * value: order
+	tmpMap := make(map[string]order.StockOrder)
+	for _, v := range os {
+		if _, ok := tmpMap[v.InstID]; ok {
+			// temp the order in map
+			tmpOrder := tmpMap[v.InstID]
+			// chect the direction
+			if v.OrderDirection == tmpMap[v.InstID].OrderDirection {
+				// add the order num
+				tmpOrder.OrderNum += v.OrderNum
+				// update the map
+				tmpMap[v.InstID] = tmpOrder
+			} else {
+				if v.OrderNum > tmpOrder.OrderNum {
+					// update the order num
+					tmpOrder.OrderNum = v.OrderNum - tmpOrder.OrderNum
+					// update the order direction
+					tmpOrder.OrderDirection = v.OrderDirection
+					// update the map
+					tmpMap[v.InstID] = tmpOrder
+				} else if v.OrderNum == tmpMap[v.InstID].OrderNum {
+					// delete the order in map
+					delete(tmpMap, v.InstID)
+				} else {
+					// update the order num
+					tmpOrder.OrderNum = tmpOrder.OrderNum - v.OrderNum
+					// update the map
+					tmpMap[v.InstID] = tmpOrder
+				}
+			}
+		} else {
+			tmpMap[v.InstID] = v
+		}
+	}
+	for _, v := range tmpMap {
+		res = append(res, v)
+	}
+	return res
+}
+
 // 此处设计强制要求形式上有GEP和Manual两类，如果真不想写，对应的地方留空即可
 type IStrategy interface {
 	ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult)

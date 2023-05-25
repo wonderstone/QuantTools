@@ -5,3 +5,4 @@ default:
     fnum:  10
     stimecritic:  "14:50"
     ftimecritic:  "14:50"
+    min_cash_ratio:  0.05

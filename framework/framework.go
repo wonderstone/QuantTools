@@ -2,6 +2,7 @@ package framework
 
 import (
 	// "fmt"
+
 	"math"
 
 	"github.com/wonderstone/QuantTools/account"
@@ -436,7 +437,7 @@ func (BT *BackTest) IterData(VAcct *virtualaccount.VAcct, BCM *dataprocessor.Bar
 		//2.0 判断是否符合close或MTM条件 确认是否需收盘
 		if lastdatetime != "" {
 			if len(BCM.BarCMap[mapkeydt].Stockdata) != 0 && lastdatetime[0:10] != mapkeydt[0:10] {
-				// fmt.Println(lastdatetime[0:10])
+				// fmt.Println(lastdatetime[0:10], mapkeydt[0:10])
 				//2.0.1 如果符合 账户进行对应操作
 
 				VAcct.SAcct.ActOnCM()

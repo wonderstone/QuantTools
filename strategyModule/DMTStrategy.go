@@ -30,11 +30,11 @@ type DMTStrategy struct {
 	STimeCritic    string             // 时间关键字，用于判断是否需要进行交易
 	lastTradeValue map[string]float64 // 公式上一次买入信号数值
 	stimeCondition bool               // 时间条件是否满足
-	s_cash         map[string]float64 //各支股票对应现金
+	faMap          map[string]float64 //各支股票对应可用资金  fund available
 	min_cash_ratio float64
 }
 
-func NewDMTStrategy(init_money float64, SInstNms []string, SIndiNms []string, STimeCritic string, s_cash map[string]float64) DMTStrategy {
+func NewDMTStrategy(init_money float64, SInstNms []string, SIndiNms []string, STimeCritic string, faMap map[string]float64, min_cash_ratio float64) DMTStrategy {
 	return DMTStrategy{
 		init_money:     init_money,
 		SInstNames:     SInstNms,
@@ -42,12 +42,12 @@ func NewDMTStrategy(init_money float64, SInstNms []string, SIndiNms []string, ST
 		STimeCritic:    STimeCritic,
 		lastTradeValue: make(map[string]float64),
 		stimeCondition: false,
-		s_cash:         s_cash,
-		min_cash_ratio: 0.05,
+		faMap:          faMap,
+		min_cash_ratio: min_cash_ratio,
 	}
 }
 
-// this function is nessary for the framework
+// = this function is designed for the framework
 func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfile string) DMTStrategy {
 	// c := configer.New(dir + "BackTest.yaml")
 	c := configer.New(dir + BTConfile)
@@ -70,7 +70,6 @@ func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 		sindinames = append(sindinames, v.(string))
 	}
 	c = configer.New(dir + StgConfile)
-
 	err = c.Load()
 	if err != nil {
 		panic(err)
@@ -80,100 +79,125 @@ func NewDMTStrategyFromConfig(dir string, BTConfile string, sec string, StgConfi
 		panic(err)
 	}
 	STimeCritic := c.GetString("default.stimecritic")
-	s_cash := make(map[string]float64, len(sinstrnames))
+	// init the faMap
+	faMap := make(map[string]float64, len(sinstrnames))
 	average, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(init_money)/float64(len(sinstrnames))), 64)
 	for _, s := range sinstrnames {
-
-		s_cash[s] = average
+		// 账户初始资金充当市值情况
+		faMap[s] = average
 	}
-	return NewDMTStrategy(init_money, sinstrnames, sindinames, STimeCritic, s_cash)
+	min_cash_ratio := c.GetFloat64("default.min_cash_ratio")
+	return NewDMTStrategy(init_money, sinstrnames, sindinames, STimeCritic, faMap, min_cash_ratio)
 }
+
+// = 字符串简易处理时间判断
 func GetTimeValue(timeString string) string {
 	// get the time value
 	timeValue := timeString[11:16]
 	return timeValue
 }
+
+// ~ 利用fundavailable概念，卖出时增加该数值，买入时其充当管理市值的剩余现金概念
 func update_value(dmt *DMTStrategy, vAcct *virtualaccount.VAcct) {
-	for InstID, cash := range dmt.s_cash {
+	for InstID, fa := range dmt.faMap {
 		order_info, ok := vAcct.SAcct.RecordOrderMapS[InstID]
 		if ok {
 			for _, info := range order_info {
 				if info.SO.OrderDirection == "Buy" {
-					cash = cash - info.SO.CalEquity()
+					fa = fa - info.SO.CalEquity()
 				} else if info.SO.OrderDirection == "Sell" {
-					cash = cash + info.SO.CalEquity()
+					fa = fa + info.SO.CalEquity()
 				}
 			}
 			vAcct.SAcct.RecordOrderMapS[InstID] = nil
 		}
-		dmt.s_cash[InstID] = cash
+		dmt.faMap[InstID] = fa
 	}
 }
 
-// check the order  if eligible
-func (dmt *DMTStrategy) CheckEligible(s_name string, o *order.StockOrder, SA *stockaccount.StockAccount) {
+// check the order if eligible
+// / CheckEligible机制为何不能删除？
+// * 原因之一：虚拟账户与真实账户下单同步机制。策略下单实际上基于虚拟账户，下单的一刻即可以同步然后模拟撮合更新虚拟账户。
+// *         真实账户情况与虚拟账户可能完全不同。虚拟撮合可能存在虚拟下单失败，但是真实账户下单成功的情况。
+// / 为何不使用虚拟撮合后同步下单操作？
+// * 原因之一：撮合需要下一笔数据进入进行判断。这会导致下单时间延迟，且逻辑上需要特判该笔数据。
+func (dmt *DMTStrategy) CheckEligible(s_name string, o *order.StockOrder, SA *stockaccount.StockAccount) bool {
 	switch o.OrderDirection {
 	case "Buy":
-		if o.CalEquity() <= dmt.s_cash[s_name] {
-			o.IsEligible = true
+		if o.CalEquity() <= dmt.faMap[s_name] {
+			return true
 		}
 	case "Sell":
-		o.IsEligible = true
+		if _, ok := SA.PosMap[o.InstID]; ok {
+			// check the previous position is enough
+			if o.OrderNum <= SA.PosMap[o.InstID].CalPosPrevNum() {
+				return true
+			}
+		}
 	}
+	return false
 }
+
+// ~ GEP Style with only 5 lines different from the Manually Style
 func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap, Eval func([]float64) []float64) (orderRes OrderResult) {
 	update_value(dmt, vAcct)
-	//check the datetime is the executable time
+	// 1. check the datetime is the exact time to trade
 	if GetTimeValue(datetime) == dmt.STimeCritic {
 		dmt.stimeCondition = true
 	} else {
 		dmt.stimeCondition = false
 	}
-
 	// 判断股票标的切片SInstrNames是否为空 并且 时间准则为真，如果为空，则不操作股票数据循环
 	if len(dmt.SInstNames) != 0 && dmt.stimeCondition {
 		// 依据标的循环Data得到数据
 		for instID, SBDE := range bc.Stockdata {
 			// 判断是否数据为NaN，如果为NaN，则跳过
 			if !ContainNaN(SBDE.IndiDataMap) {
-				// * GEP 引入
+				// % GEP 引入
 				var GEPSlice = make([]float64, len(dmt.SIndiNames))
 				for i := 0; i < len(dmt.SIndiNames); i++ {
 					GEPSlice[i] = SBDE.IndiDataMap[dmt.SIndiNames[i]]
 				}
-				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
-
 				tradeval := Eval(GEPSlice)
+				// % GEP 引入完毕
+				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				// + 查看上一次记录的交易依托数值
 				lsttv, tok := dmt.lastTradeValue[instID]
-				//buy condition check
+				//buy condition check，如果上一次交易依托数值为负数，且当前交易依托数值为正数，则进行买入操作
 				if tok && lsttv < 0 && tradeval[0] > 0 {
-					//使用该股票可支配的80%资金计算buy_num
-					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
-					if buy_num != 0 && SBDE.IndiDataMap["Close"] != 0 {
-						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], buy_num, "Buy", &tmpSCP)
-						dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)
-						if new_order.IsEligible {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
-						}
-						// DCE: debug info
-						if debug {
-							// this part is for test only
-							log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).Float64("Close", SBDE.IndiDataMap["Close"]).
-								Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
-								Msg("Strategy buy")
+					// 判断数据SBDE.IndiDataMap是否包含Close，如不包含，则跳过
+					if val, ok := SBDE.IndiDataMap["Close"]; ok {
+						//使用该股票可支配的(1 - dmt.min_cash_ratio)资金计算buy_num
+						buy_num := math.Floor(((dmt.faMap[instID] / val) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
+						if buy_num != 0 && val != 0 {
+							// buy_num != 0是可以交易的前提，SBDE.IndiDataMap["Close"] != 0是避免数据不包含的情况。
+							new_order := order.NewStockOrder(instID, false, false, datetime, val, buy_num, "Buy", &tmpSCP)
+							if dmt.CheckEligible(instID, &new_order, &vAcct.SAcct) {
+								orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+							}
+							// DCE: debug info
+							if debug {
+								// this part is for test only
+								log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).Float64("Close", SBDE.IndiDataMap["Close"]).
+									Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
+									Msg("Strategy buy")
+							}
 						}
 					}
-
 				}
 				//sell condition check
 				if tok && tradeval[0] < 0 && lsttv > 0 {
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
+						// daily strategy so no position today. sell them all
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							if SBDE.IndiDataMap["Close"] != 0 {
-								new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
-								dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)
-								if new_order.IsEligible {
-									orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+							// 判断数据SBDE.IndiDataMap是否包含Close，如不包含，则跳过
+							if val, ok := SBDE.IndiDataMap["Close"]; ok {
+								// 以防极端情况 一般val不会为0
+								if val != 0 {
+									new_order := order.NewStockOrder(instID, false, false, datetime, val, vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
+									if dmt.CheckEligible(instID, &new_order, &vAcct.SAcct) {
+										orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+									}
 								}
 							}
 						}
@@ -183,18 +207,18 @@ func (dmt *DMTStrategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct
 							Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
 							Msg("Strategy sell")
 					}
-
 				}
 				dmt.lastTradeValue[instID] = tradeval[0]
-
 			}
 		}
 	}
 	return orderRes
 }
+
+// ~ Manually Style trade logic part
 func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAcct *virtualaccount.VAcct, CPMap cp.CPMap) (orderRes OrderResult) {
 	update_value(dmt, vAcct)
-	//check the datetime is the executable time
+	// 1. check the datetime is the exact time to trade
 	if GetTimeValue(datetime) == dmt.STimeCritic {
 		dmt.stimeCondition = true
 	} else {
@@ -206,43 +230,46 @@ func (dmt *DMTStrategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vA
 		for instID, SBDE := range bc.Stockdata {
 			// 判断是否数据为NaN，如果为NaN，则跳过
 			if !ContainNaN(SBDE.IndiDataMap) {
-				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				// % Manually logic definition
 				tradeval := SBDE.IndiDataMap["MA3"] - SBDE.IndiDataMap["MA5"]
-				fmt.Println(SBDE.IndiDataMap["MA3"], SBDE.IndiDataMap["MA5"])
-				if tradeval < 0 {
-					fmt.Println("有卖的时机")
-				}
+				// % Manually logic definition end
+				tmpSCP := cp.SimpleNewSCPFromMap(CPMap, instID)
+				// + 查看上一次记录的交易依托数值
 				lsttv, tok := dmt.lastTradeValue[instID]
-
 				//buy condition check
 				if tok && lsttv < 0 && tradeval > 0 {
-					//使用该股票可支配的80%资金计算buy_num
-					buy_num := math.Floor(((dmt.s_cash[instID] / SBDE.IndiDataMap["Close"]) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * 0.8)
-					if buy_num != 0 && SBDE.IndiDataMap["Close"] != 0 {
-						new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], buy_num, "Buy", &tmpSCP)
-						dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)
-						if new_order.IsEligible {
-							orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
-						}
-						// DCE: debug info
-						if debug {
-							// this part is for test only
-							log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
-								Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
-								Msg("Strategy buy")
+					// 判断数据SBDE.IndiDataMap是否包含Close，如不包含，则跳过
+					if val, ok := SBDE.IndiDataMap["Close"]; ok {
+						//使用该股票可支配的80%资金计算buy_num
+						buy_num := math.Floor(((dmt.faMap[instID] / val) / cp.SimpleNewSCPFromMap(CPMap, instID).ContractSize) * (1 - dmt.min_cash_ratio))
+						if buy_num != 0 && val != 0 {
+							new_order := order.NewStockOrder(instID, false, false, datetime, val, buy_num, "Buy", &tmpSCP)
+							if dmt.CheckEligible(instID, &new_order, &vAcct.SAcct) {
+								orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+							}
+							// DCE: debug info
+							if debug {
+								// this part is for test only
+								log.Info().Str("Account UUID", vAcct.SAcct.UUID).Str("TimeStamp", datetime).
+									Float64("Close", SBDE.IndiDataMap["Close"]).Float64("Open", SBDE.IndiDataMap["Open"]).Str("InstID", instID).
+									Msg("Strategy buy")
+							}
 						}
 					}
-
 				}
 				//sell condition check
 				if tok && tradeval < 0 && lsttv > 0 {
 					if _, ok := vAcct.SAcct.PosMap[instID]; ok {
+						// daily strategy so no position today. sell them all
 						if vAcct.SAcct.PosMap[instID].CalPosPrevNum() > 0 {
-							if SBDE.IndiDataMap["Close"] != 0 {
-								new_order := order.NewStockOrder(instID, false, false, datetime, SBDE.IndiDataMap["Close"], vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
-								dmt.CheckEligible(instID, &new_order, &vAcct.SAcct)
-								if new_order.IsEligible {
-									orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+							// 判断数据SBDE.IndiDataMap是否包含Close，如不包含，则跳过
+							if val, ok := SBDE.IndiDataMap["Close"]; ok {
+								// 以防极端情况 一般val不会为0
+								if val != 0 {
+									new_order := order.NewStockOrder(instID, false, false, datetime, val, vAcct.SAcct.PosMap[instID].CalPosPrevNum(), "Sell", &tmpSCP)
+									if dmt.CheckEligible(instID, &new_order, &vAcct.SAcct) {
+										orderRes.StockOrderS = append(orderRes.StockOrderS, new_order)
+									}
 								}
 							}
 						}

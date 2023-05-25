@@ -2,7 +2,7 @@
 # viper's GetStringMap function makes key value lowercase
 default:
     IfBT:  "True"
-    HoldNums:  [10]
+    HoldNums:  [400]
     Tlimit:  4
     InitBuyTime:  "14:50:00.000"
     StartTime:  "09:30:00.000"
