@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wonderstone/QuantTools/vdsdata"
 )
 
 // test RegisterSTG
@@ -107,20 +106,15 @@ func TestGetTargetsData(t *testing.T) {
 	// ip
 	ip := "123.138.216.197"
 	// port
-	port := 9009
+	port := 9004
 	// channel
 	ch := make(chan bool)
 	// new a data tunnel
 	dt := NewDataTunnel()
-	vt := vdsdata.VDSInterfaceType_SubSnapshot
-	// 这里不对 应该是一个切片
-	vs := vdsdata.VDSSub{
-		Symbol:  "600000.SH",
-		Exch:    vdsdata.Exch_SH,
-		Sectype: vdsdata.VDSSecType_STOCK,
-	}
 
 	// test GetTargetsData
-	dt.GetTargetsData(ip, port, ch, &vs, vt)
+	dt.GetTargetsData(ip, port, ch)
 
 }
+
+// test float64ToByte

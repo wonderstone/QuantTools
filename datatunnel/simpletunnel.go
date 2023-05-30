@@ -313,7 +313,7 @@ func (dt *DataTunnel) IndicatorChainHandler() {
 }
 
 // get targets data from VDS TCP server, receive signal from signal channel to close the connection
-func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool, vs *vdsdata.VDSSub, vt vdsdata.VDSInterfaceType) {
+func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool) {
 	for {
 		// create a tcp connection
 		// conn, err := net.Dial("tcp", "123.138.216.197:9009")
@@ -325,6 +325,8 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool, vs *
 		}
 		// 在这里处理连接成功后的操作
 		fmt.Println("Connected to server.")
+		reqmap := map[string]string{"msgtype": "snapshot", "symbol": "600000.SH"}
+
 		// 不断读取服务器发送的数据
 		for {
 			select {
@@ -333,17 +335,10 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool, vs *
 				return
 			default:
 
-				pData, err := proto.Marshal(vs)
-				// fmt.Println(sub, pData)
-				if err != nil {
-					panic(err)
+				sub := &vdsdata.VDSReq{
+					ReqMap: reqmap,
 				}
-				tcp := &vdsdata.VDSTcp{
-					Itype:    vt,
-					Data:     pData,
-					Userdata: []byte{},
-				}
-				sData, err := proto.Marshal(tcp)
+				sData, err := proto.Marshal(sub)
 				if err != nil {
 					panic(err)
 				}
@@ -356,7 +351,10 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool, vs *
 				b.Write([]byte(sData))
 
 				conn.Write([]byte(b.Bytes()))
-
+				var doublemsg vdsdata.DoubleMsg
+				var stringmsg vdsdata.StringMsg
+				var int32msg vdsdata.Int32Msg
+				var int64msg vdsdata.Int64Msg
 				for {
 					//读消息头
 					datalen := make([]byte, 4)
@@ -369,47 +367,44 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool, vs *
 
 					buf := make([]byte, dtlen)
 					// _, err = reader.Read(buf)
-					_, err0 := io.ReadFull(conn, buf)
-					if err0 != nil {
-						panic(err0)
+					_, e := io.ReadFull(conn, buf)
+					if e != nil {
+						panic(e)
 					}
 					// 数据解析转换
-					var s = vdsdata.VDSTcp{}
+					var s = vdsdata.VDSRsp{}
 					err2 := proto.Unmarshal(buf, &s)
 					if err2 != nil {
 						panic(err2)
 					}
+					for k, v := range s.RspMap {
+						switch k {
+						case "msgType":
+							err := v.GetValue().UnmarshalTo(&stringmsg)
+							if err != nil {
+								panic(err)
+							}
+						case "symbol":
 
-					var snapshot vdsdata.VDSSnapshot
-					// ! 此处保留说明VDS数据处理有问题
-					err2 = proto.Unmarshal(s.Data, &snapshot)
-					// if err2 != nil {
-					// 	panic(err2)
-					// }
-					//fmt.Println(snapshot.Date, snapshot.Buylevel, snapshot.Close, snapshot.Exch, snapshot.Symbol, snapshot.Open)
-					if snapshot.Uptetime != 0 {
-						fmt.Println(snapshot.Uptetime, snapshot.Symbol)
+							err := v.GetValue().UnmarshalTo(&stringmsg)
+							if err != nil {
+								panic(err)
+							}
+							fmt.Println(k, stringmsg.Data)
 
-						// newBarDE with snapshot data
-						tmpMap := make(map[string]float64)
-						tmpMap["Open"] = snapshot.Open
-						tmpMap["High"] = snapshot.High
-						tmpMap["Low"] = snapshot.Low
-						tmpMap["Close"] = snapshot.Preclose
-
-						barDE := dataprocessor.NewBarDE(
-							// change int32 to string
-							strconv.Itoa(int(snapshot.Date)),
-							snapshot.Symbol,
-							tmpMap,
-						)
-						// print all snapshot data
-						fmt.Printf("Symbol: %s, Date: %d, Time: %d, Open: %f, High: %f, Low: %f, Preclose: %f  \n", snapshot.Symbol, snapshot.Date, snapshot.Uptetime, snapshot.Open, snapshot.High, snapshot.Low, snapshot.Preclose)
-						fmt.Println(barDE)
+						case "updatetime":
+							v.GetValue().UnmarshalTo(&int32msg)
+							fmt.Println(k, int32msg.Data)
+						case "volume":
+							v.GetValue().UnmarshalTo(&int64msg)
+							fmt.Println(k, int64msg.Data)
+						default:
+							v.GetValue().UnmarshalTo(&doublemsg)
+							fmt.Println(k, doublemsg.Data)
+						}
 					}
-					if snapshot.Symbol == "600000" {
-						fmt.Println(snapshot.Last, snapshot.Symbol)
-					}
+					fmt.Println("now: ", time.Now())
+					fmt.Println("*******************")
 				}
 			}
 		}
