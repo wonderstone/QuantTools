@@ -350,13 +350,19 @@ func (BT *BackTest) PrepareData(parseMode string) {
 	if parseMode == "VDS" {
 		sort.Slice(BT.BCM.BarCMapkeydts, func(i, j int) bool {
 			// 按照VDS规定格式解析时间
-			// tm, err := time.Parse("2006.01.02T15:04:05.000", "2023.01.18T09:35:00.000")
-			// dti, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[i])
-			// dtj, _ := time.Parse("2006/1/2 15:04", BT.BCM.BarCMapkeydts[j])
 			dti, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[i])
 			dtj, _ := time.Parse("2006.01.02T15:04:05.000", BT.BCM.BarCMapkeydts[j])
 			return dti.Before(dtj)
 		})
+	} else if parseMode == "VDS2" {
+		sort.Slice(BT.BCM.BarCMapkeydts, func(i, j int) bool {
+			// 按照VDS规定格式解析时间
+			dti, _ := time.Parse("20060102150405000", BT.BCM.BarCMapkeydts[i])
+			dtj, _ := time.Parse("20060102150405000", BT.BCM.BarCMapkeydts[j])
+			return dti.Before(dtj)
+		})
+	} else {
+		panic("parseMode error")
 	}
 
 }

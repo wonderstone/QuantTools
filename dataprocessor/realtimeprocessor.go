@@ -86,12 +86,18 @@ func FakeGetHistoryData(dir string, parseMode string) (BarCMap map[string]*BarC,
 	// sort the BarCMapkeydts
 	if parseMode == "VDS" {
 		sort.Slice(BarCMapkeydts, func(i, j int) bool {
-			// dti, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[i])
-			// dtj, _ := time.Parse("2006/1/2 15:04", BarCMapkeydts[j])
 			dti, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[i])
 			dtj, _ := time.Parse("2006.01.02T15:04:05.000", BarCMapkeydts[j])
 			return dti.Before(dtj)
 		})
+	} else if parseMode == "VDS2" {
+		sort.Slice(BarCMapkeydts, func(i, j int) bool {
+			dti, _ := time.Parse("20060102150405000", BarCMapkeydts[i])
+			dtj, _ := time.Parse("20060102150405000", BarCMapkeydts[j])
+			return dti.Before(dtj)
+		})
+	} else {
+		panic("parseMode error")
 	}
 
 	return BarCMap, BarCMapkeydts

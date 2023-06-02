@@ -12,4 +12,9 @@ func TestTimeParse(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(tm)
+	tm, err = time.Parse("20060102150405000", "20230118093500000")
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(tm)
 }

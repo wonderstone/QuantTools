@@ -61,6 +61,7 @@ func in(target string, str_array []string) bool {
 	}
 	return false
 }
+
 func indiCsvProcessDir(dirpath string, targetdir string, iis []indicator.IndiInfo, needed_indicators []string, time_strings []string, stimecritic string) bool {
 	// get all the files in the dirpath
 	files, err := filepath.Glob(dirpath + "/*.csv")

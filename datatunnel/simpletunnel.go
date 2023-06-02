@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -19,6 +20,7 @@ const debug = false
 
 // DataTunnel is a data tunnel for strategy
 type DataTunnel struct {
+	DataTimeStamp string
 	//基础策略信息汇总
 	StgM map[string]StgTargetsInfo
 	// InfoFTSet map[InfoFT]void
@@ -33,8 +35,9 @@ type DataTunnel struct {
 	//公有数据分发区 由map存储的datachannel,key为策略名
 	SDataM map[string]chan *dataprocessor.BarC
 	FDataM map[string]chan *dataprocessor.BarC
-	// 私有数据缓冲map
-	cachDataMap map[string]dataprocessor.BarC
+	// 私有数据缓冲sync.map
+	cachDataSyncMap sync.Map
+	// cachDataMap     map[string]dataprocessor.BarC
 }
 
 // NewDataTunnel is a constructor for DataTunnel
@@ -47,8 +50,8 @@ func NewDataTunnel() *DataTunnel {
 		InfoM:  make(map[InfoFT]map[string]void),
 		SDataM: make(map[string]chan *dataprocessor.BarC),
 		FDataM: make(map[string]chan *dataprocessor.BarC),
-		// 私有数据缓冲map
-		cachDataMap: make(map[string]dataprocessor.BarC),
+		// 私有数据缓冲map, key为策略名
+		cachDataSyncMap: sync.Map{},
 	}
 }
 
@@ -64,8 +67,11 @@ func (dt *DataTunnel) RegisterSTG(sti StgTargetsInfo) {
 		// deepcopy of sti
 		tmp := StgTargetsInfo{
 			StgName: sti.StgName,
-			StgFreq: sti.StgFreq,
 			STES:    make([]StgTargetsElement, len(sti.STES)),
+			InfoET: InfoET{
+				StgFreq:         sti.StgFreq,
+				StgTimeTriggers: sti.StgTimeTriggers,
+			},
 		}
 		for i, v := range sti.STES {
 			tmp.STES[i].FreqType = v.FreqType
@@ -80,7 +86,6 @@ func (dt *DataTunnel) RegisterSTG(sti StgTargetsInfo) {
 				tmp.STES[i].FTargets[k] = DeepCopyMap(vv)
 			}
 		}
-
 		dt.StgM[sti.StgName] = tmp
 	}
 	// +公有标的区TarM由map存储key为频率value为StgTargets
@@ -180,7 +185,7 @@ func (dt *DataTunnel) RegisterSTG(sti StgTargetsInfo) {
 		log.Info().Str("Stg Name", sti.StgName).
 			Msg("Stg Registered")
 	}
-	// +私有数据缓冲map,key is the stgName
+	// +私有数据缓冲map,key is the stgName,value is dataprocessor.BarC
 
 }
 
@@ -269,40 +274,62 @@ func (dt *DataTunnel) RemoveSTG(sti StgTargetsInfo) {
 		log.Info().Str("Stg Removed", sti.StgName)
 	}
 	// -私有数据缓冲map cachDataMap
-	// check if the CachDataM has the same key as sti.StgName
-	delete(dt.cachDataMap, sti.StgName)
+	// check if the cachDataSyncMap has the same key as sti.StgName
+	dt.cachDataSyncMap.Delete(sti.StgName)
 
 }
 
 // process the data in tunnel
-func (dt *DataTunnel) ProcessData() {
+func (dt *DataTunnel) ProcessData(ip string, port int, stopsignal chan bool, reqmaps []map[string]string, targetsChan chan []map[string]string) {
+	// 0. Use channal to pass the *dataprocessor.BarDE data
+	// 0.1 create the channal for BarDEFreq
 
+	BarDEchan := make(chan *BarDEFreq)
 	// 1. Get data from VDS TCP server
-	// 1.1 combine the TargetName and FreqType to get the struct then
-	// locate the stgName
+	go dt.GetTargetsData(ip, port, stopsignal, reqmaps, targetsChan, BarDEchan)
+	// 1.1 loop the chan and get the data from BarDEchan
+	for {
+		tmpBarDEFreq := <-BarDEchan
+		// 1.2 combine the TargetName and FreqType to get the struct then
+		InfoFTKey := InfoFT{tmpBarDEFreq.InstID, tmpBarDEFreq.Freq}
+		// 1.3 check if the InfoM has the same key as InfoFTKey
+		if _, ok := dt.InfoM[InfoFTKey]; ok {
+			// 1.4 if ok, then iter the InfoM[InfoFTKey] to get the stgName
+			for stgN := range dt.InfoM[InfoFTKey] {
+				// 2. Prepare Data for each strategy on each frequency
+				dt.UpdateCachDataSyncMap(stgN, &tmpBarDEFreq.BarDE)
+				// 2.1 only update the TimeStamp when DataCach updated
+				dt.DataTimeStamp = tmpBarDEFreq.BarDE.BarTime
+				// 3. Send data to indicator chain for each strategy on time trigger
 
-	// 2. Prepare Data for each strategy on each frequency
-
-	// 3. Send data to indicator chain for each strategy on time trigger
-
-	// 4. Send data to strategy channel
-}
-
-// Lazy man! No get set method! Use public field directly!
-func (dt *DataTunnel) GetStgNames(TargetName string, FreqType string) {
-	// create the InfoFT key for
-	InfoFTKey := InfoFT{TargetName, FreqType}
-	// iter all the stgNames in InfoM and update the data
-	for k := range dt.InfoM[InfoFTKey] {
-		fmt.Println(k)
-		// dt.cachDataMap[k] = make(map[string]map[string]float64)
+				// 4. Send data to strategy channel
+			}
+		}
 	}
 
 }
 
+// Lazy man! No get set method! Use public field directly!
+
 // TimeTrigger check
-func (dt *DataTunnel) TimeTrigger(ts string) bool {
+func (dt *DataTunnel) TimeTrigger(iet InfoET, rl string) bool {
 	// check if the ts is in the TimeTriggerMap
+	switch rl {
+	case "S", "s", "second", "Sec", "Seconds", "seconds":
+		fmt.Println("update the timestamp to Seconds resolution level")
+	case "M", "m", "minute", "Min", "Minutes", "minutes":
+		fmt.Println("Minutes resolution level")
+	case "H", "h", "hour", "Hour", "Hours", "hours":
+		fmt.Println("Hours resolution level")
+	default:
+		fmt.Println("default")
+	}
+	switch iet.StgFreq {
+	case "Daily":
+		fmt.Println("Daily")
+	case "Min":
+		fmt.Println("Min")
+	}
 
 	return true
 }
@@ -312,8 +339,20 @@ func (dt *DataTunnel) IndicatorChainHandler() {
 
 }
 
+// update the data in cachDataSyncMap
+func (dt *DataTunnel) UpdateCachDataSyncMap(stgName string, pbde *dataprocessor.BarDE) {
+	// check if the stgName is in the cachDataSyncMap
+	if tmp, ok := dt.cachDataSyncMap.Load(stgName); !ok {
+		dt.cachDataSyncMap.Store(stgName, dataprocessor.NewBarCSimple())
+	} else {
+		// change the type of tmp to *dataprocessor.BarC
+		tmp.(*dataprocessor.BarC).Stockdata[pbde.InstID] = pbde
+		dt.cachDataSyncMap.Store(stgName, tmp)
+	}
+}
+
 // get targets data from VDS TCP server, receive signal from signal channel to close the connection
-func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool) {
+func (dt *DataTunnel) GetTargetsData(ip string, port int, stopsignal chan bool, reqmaps []map[string]string, targetsChan chan []map[string]string, BarDEchan chan *BarDEFreq) {
 	for {
 		// create a tcp connection
 		// conn, err := net.Dial("tcp", "123.138.216.197:9009")
@@ -325,87 +364,18 @@ func (dt *DataTunnel) GetTargetsData(ip string, port int, signal chan bool) {
 		}
 		// 在这里处理连接成功后的操作
 		fmt.Println("Connected to server.")
-		reqmap := map[string]string{"msgtype": "snapshot", "symbol": "600000.SH"}
-
 		// 不断读取服务器发送的数据
 		for {
 			select {
-			case <-signal:
-				conn.Close()
-				return
+			case s := <-stopsignal:
+				// todo the logic here needs to be adhere to the Terminal Manufactor（say what pause、restart、stop mean）
+				if s {
+					conn.Close()
+					return
+				}
+				// todo end!
 			default:
-
-				sub := &vdsdata.VDSReq{
-					ReqMap: reqmap,
-				}
-				sData, err := proto.Marshal(sub)
-				if err != nil {
-					panic(err)
-				}
-
-				slen := len(sData)
-				q := IntToBytes(slen)
-				var b bytes.Buffer
-
-				b.Write(q)
-				b.Write([]byte(sData))
-
-				conn.Write([]byte(b.Bytes()))
-				var doublemsg vdsdata.DoubleMsg
-				var stringmsg vdsdata.StringMsg
-				var int32msg vdsdata.Int32Msg
-				var int64msg vdsdata.Int64Msg
-				for {
-					//读消息头
-					datalen := make([]byte, 4)
-					_, err := io.ReadFull(conn, datalen)
-					if err != nil {
-						panic(err)
-					}
-					// turn datalen into int
-					dtlen := BytesToInt(datalen)
-
-					buf := make([]byte, dtlen)
-					// _, err = reader.Read(buf)
-					_, e := io.ReadFull(conn, buf)
-					if e != nil {
-						panic(e)
-					}
-					// 数据解析转换
-					var s = vdsdata.VDSRsp{}
-					err2 := proto.Unmarshal(buf, &s)
-					if err2 != nil {
-						panic(err2)
-					}
-					for k, v := range s.RspMap {
-						switch k {
-						case "msgType":
-							err := v.GetValue().UnmarshalTo(&stringmsg)
-							if err != nil {
-								panic(err)
-							}
-						case "symbol":
-
-							err := v.GetValue().UnmarshalTo(&stringmsg)
-							if err != nil {
-								panic(err)
-							}
-							fmt.Println(k, stringmsg.Data)
-
-						case "updatetime":
-							v.GetValue().UnmarshalTo(&int32msg)
-							fmt.Println(k, int32msg.Data)
-						case "volume":
-							v.GetValue().UnmarshalTo(&int64msg)
-							fmt.Println(k, int64msg.Data)
-						default:
-							v.GetValue().UnmarshalTo(&doublemsg)
-							fmt.Println(k, doublemsg.Data)
-						}
-					}
-					fmt.Println("now: ", time.Now())
-					fmt.Println("*******************")
-				}
+				SubProcessData(conn, reqmaps, targetsChan, BarDEchan)
 			}
 		}
 	}
@@ -442,4 +412,126 @@ func DeepCopyMap(m map[string]void) map[string]void {
 		newMap[k] = v
 	}
 	return newMap
+}
+
+// func to sub and process the data
+func SubProcessData(conn net.Conn, tmpreqMaps []map[string]string, targetsChan chan []map[string]string, BarDEchan chan *BarDEFreq) {
+	// 循环发送所有请求reqmap
+	Subdata(conn, tmpreqMaps)
+	var doublemsg vdsdata.DoubleMsg
+	var stringmsg vdsdata.StringMsg
+	var int32msg vdsdata.Int32Msg
+	var int64msg vdsdata.Int64Msg
+	for {
+		// 先check是否targetsChan有数据发送过来
+		select {
+		case tmpreqMaps := <-targetsChan:
+			Subdata(conn, tmpreqMaps)
+			fmt.Println("now the sub data is ", tmpreqMaps)
+		default:
+		}
+		//读消息头
+		datalen := make([]byte, 4)
+		_, err := io.ReadFull(conn, datalen)
+		if err != nil {
+			panic(err)
+		}
+		// turn datalen into int
+		dtlen := BytesToInt(datalen)
+		buf := make([]byte, dtlen)
+		_, e := io.ReadFull(conn, buf)
+		if e != nil {
+			panic(e)
+		}
+		// 数据解析转换
+		var s = vdsdata.VDSRsp{}
+		err = proto.Unmarshal(buf, &s)
+		if err != nil {
+			panic(err)
+		}
+		// new a BarDEFreq
+		tmpBarDEFreq := BarDEFreq{
+			// dataprocessor.BarDE part
+			BarDE: dataprocessor.BarDE{
+				// make the map
+				IndiDataMap: make(map[string]float64),
+			},
+		}
+		for k, v := range s.RspMap {
+			// new a BarDE and update the data
+			switch k {
+			case "Msgtype":
+				err := v.GetValue().UnmarshalTo(&stringmsg)
+				if err != nil {
+					panic(err)
+				} else {
+					tmpBarDEFreq.Freq = stringmsg.Data
+					// 	// fmt.Println(k, stringmsg.Data)
+				}
+			case "Symbol":
+				err := v.GetValue().UnmarshalTo(&stringmsg)
+				if err != nil {
+					panic(err)
+				} else {
+					tmpBarDEFreq.InstID = stringmsg.Data
+					// tmpInfoFT.TargetName = stringmsg.Data
+					// fmt.Println(k, stringmsg.Data)
+				}
+
+			case "Updatetime":
+				err := v.GetValue().UnmarshalTo(&int32msg)
+				if err != nil {
+					panic(err)
+				} else {
+					tmpBarDEFreq.BarTime = strconv.Itoa(int(int32msg.Data))
+					// fmt.Println(k, int32msg.Data)
+				}
+
+			case "Volume":
+				err := v.GetValue().UnmarshalTo(&int64msg)
+				if err != nil {
+					panic(err)
+				} else {
+					tmpBarDEFreq.IndiDataMap["Volume"] = float64(int64msg.Data)
+					// fmt.Println(k, int64msg.Data)
+				}
+
+			default:
+				err := v.GetValue().UnmarshalTo(&doublemsg)
+				if err != nil {
+					panic(err)
+				} else {
+					tmpBarDEFreq.IndiDataMap[k] = doublemsg.Data
+					// fmt.Println(k, doublemsg.Data)
+				}
+			}
+		}
+		// send the BarDE to the channel
+		BarDEchan <- &tmpBarDEFreq
+		// fmt.Println("++++++")
+		// fmt.Println("BarDE is ", tmpBarDE)
+		// fmt.Println("InfoFT is ", tmpInfoFT)
+		// fmt.Println("++++++")
+		// fmt.Println("now: ", time.Now())
+		// fmt.Println("*******************")
+	}
+}
+
+func Subdata(conn net.Conn, reqmaps []map[string]string) {
+	// 循环发送所有请求reqmap
+	for _, reqmap := range reqmaps {
+		sub := &vdsdata.VDSReq{
+			ReqMap: reqmap,
+		}
+		sData, err := proto.Marshal(sub)
+		if err != nil {
+			panic(err)
+		}
+		slen := len(sData)
+		q := IntToBytes(slen)
+		var b bytes.Buffer
+		b.Write(q)
+		b.Write([]byte(sData))
+		conn.Write([]byte(b.Bytes()))
+	}
 }

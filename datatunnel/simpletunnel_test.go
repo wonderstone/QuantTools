@@ -1,7 +1,9 @@
 package datatunnel
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,10 +13,7 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 	//test data
 	sti := StgTargetsInfo{
 		StgName: "test",
-		StgFreq: "daily",
-		StgTimeTrigger: []string{
-			"14:55:00",
-		},
+
 		STES: []StgTargetsElement{
 			{
 				FreqType: "SnapShot",
@@ -29,10 +28,15 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 				},
 			},
 		},
+		InfoET: InfoET{
+			StgFreq: "daily",
+			StgTimeTriggers: []string{
+				"14:55:00",
+			},
+		},
 	}
 	sti1 := StgTargetsInfo{
 		StgName: "test1",
-		StgFreq: "daily",
 		STES: []StgTargetsElement{
 			{
 				FreqType: "SnapShot",
@@ -60,13 +64,13 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 				},
 			},
 		},
+		InfoET: InfoET{
+			StgFreq:         "daily",
+			StgTimeTriggers: []string{},
+		},
 	}
 	sti2 := StgTargetsInfo{
 		StgName: "test2",
-		StgFreq: "daily",
-		StgTimeTrigger: []string{
-			"14:55:00",
-		},
 		STES: []StgTargetsElement{
 			{
 				FreqType: "1d",
@@ -80,6 +84,12 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 						"cu2303": {"high": void{}, "low": void{}},
 					},
 				},
+			},
+		},
+		InfoET: InfoET{
+			StgFreq: "daily",
+			StgTimeTriggers: []string{
+				"14:55:00",
 			},
 		},
 	}
@@ -101,7 +111,6 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 }
 
 // test GetTargetsData
-
 func TestGetTargetsData(t *testing.T) {
 	// ip
 	ip := "123.138.216.197"
@@ -111,10 +120,39 @@ func TestGetTargetsData(t *testing.T) {
 	ch := make(chan bool)
 	// new a data tunnel
 	dt := NewDataTunnel()
+	// new a channel for targets change as map[string]string
+	TargetsChangechan := make(chan []map[string]string)
 
+	// new the channel
+	BarDEFreqchan := make(chan *BarDEFreq)
 	// test GetTargetsData
-	dt.GetTargetsData(ip, port, ch)
+	tmpMap := map[string]string{"Msgtype": "Snapshot", "Symbol": "600000.SH"}
+	tmpMaps := []map[string]string{tmpMap}
+	go addNewSubDataMaps(TargetsChangechan)
+	go dt.GetTargetsData(ip, port, ch, tmpMaps, TargetsChangechan, BarDEFreqchan)
+	// output the channel data
+	for {
+		tmpBarDE := <-BarDEFreqchan
+		fmt.Println(tmpBarDE)
+	}
 
+}
+
+// func to add new subdata maps in 1 minute later
+func addNewSubDataMaps(TargetsChangechan chan []map[string]string) {
+	// wait 1 minute to execute following
+	// new the channel
+	// TargetsChangechan := make(chan []map[string]string)
+	// new the subdata maps
+
+	time.Sleep(15 * time.Second)
+	fmt.Println("add new subdata maps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	tmpMap := map[string]string{"Msgtype": "Snapshot", "Symbol": "600000.SH,510050.SH"}
+	tmpMaps := []map[string]string{tmpMap}
+	// add the subdata maps in 1 minute later
+	// time.Sleep(1 * time.Minute)
+	TargetsChangechan <- tmpMaps
+	fmt.Println("new subdata maps")
 }
 
 // test float64ToByte

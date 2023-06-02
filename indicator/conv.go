@@ -5,7 +5,6 @@
 
 // author:  Wonderstone (Digital Office Product Department #2)
 // revisor:
-
 package indicator
 
 // use gods to generate the queue

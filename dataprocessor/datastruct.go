@@ -50,6 +50,15 @@ func NewBarC(targetNum int) *BarC {
 	}
 }
 
+func NewBarCSimple() *BarC {
+	sde := make(map[string]*BarDE)
+	fde := make(map[string]*BarDE)
+	return &BarC{
+		Stockdata:   sde,
+		Futuresdata: fde,
+	}
+}
+
 type BarCM struct {
 	// for further API scenario user defined part
 	InstSIDS   []string //instrument stock ID slice
@@ -77,6 +86,17 @@ func NewBarCM(instSIDS []string, IndiSNames []string, instFIDS []string, IndiFNa
 		if err != nil {
 			panic("endDate parse error")
 		}
+	} else if parsemode == "VDS2" {
+		bd, err = time.Parse("20060102150405000", beginDate)
+		if err != nil {
+			panic("beginDate parse error")
+		}
+		ed, _ = time.Parse("20060102150405000", endDate)
+		if err != nil {
+			panic("endDate parse error")
+		}
+	} else {
+		panic("parsemode error")
 	}
 
 	//依据分钟级别预估一下数据长度
