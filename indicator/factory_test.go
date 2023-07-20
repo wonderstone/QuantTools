@@ -36,6 +36,17 @@ func TestGetIndiInfoSlice(t *testing.T) {
 	assert.NotNil(t, indis, "Indicator should not be nil")
 }
 
+// test GetCondIndiInfoSlice
+
+func TestGetCondIndiInfoSlice(t *testing.T) {
+	tmpinfoMap := make(map[string]interface{})
+	tmpinfoMap["Simple"] = "1450000000"
+	tmpinfoMap["Default"] = ""
+	condIndis := GetCondIndiInfoSlice("../config/Manual/CondIndicatorInfo.yaml", tmpinfoMap)
+	fmt.Println(condIndis)
+	assert.NotNil(t, condIndis, "Indicator should not be nil")
+}
+
 type void struct{}
 
 type OptInfo struct {

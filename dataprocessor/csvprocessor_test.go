@@ -90,7 +90,7 @@ func CsvProcessDirfromConfig(btpath string, iidir string) {
 // test CsvProcessDirfromConfig
 
 func TestCsvProcessDirfromConfig(t *testing.T) {
-	BTpath := "../config/Manual/BackTest.yaml"
+	BTpath := "../config/Manual/BackTestT0.yaml"
 	IndiDir := "../config/Manual/"
 	CsvProcessDirfromConfig(BTpath, IndiDir)
 

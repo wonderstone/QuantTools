@@ -1,7 +1,7 @@
 ---
 # viper's GetStringMap function makes key value lowercase
 gep:
-    funcweight:  [["-",2],["+",2],["/",2],["*",2]]
+    funcweight:  [["-",2],["+",2],["/",2],["*",2],["Mod",2],["Pow",2],["Min2",2],["OR1",2]]
     iteration:  20 # 迭代次数
     expectfitness:  5000.0 # 满意预期，达到即终止，可设定大一些，迫使算法持续搜索
     pmutate:  0.2
@@ -13,12 +13,12 @@ gep:
     p1p:  0.05
     p2p:  0.05
     pr:  0.03
-    numgenomeset: 20 # 当采用genomeset形式，本数值相当于population，下数值相当于输出几个表达式
+    numgenomeset: 50 # 当采用genomeset形式，本数值相当于population，下数值相当于输出几个表达式
     numgenomes:  10 # 当采用genome形式，本数值相当于population， should be >=2 or panic
-    headsize:  20
+    headsize:  30
     numgenomespergenomeset:  2  # 当采用genomeset形式的时候，此字段有意义
     numgenespergenome:  2
     numconstants:  0
     linkfunc:  "+"
-    mode:  "Genome" # Genome and GenomeSet, default is Genome. All cannot be parsed correctly would be default.
+    mode:  "GenomeSet" # Genome and GenomeSet, default is Genome. All cannot be parsed correctly would be default.
 

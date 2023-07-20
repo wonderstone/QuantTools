@@ -1,0 +1,36 @@
+ci:
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA3
+      freq: default
+      parslice:
+        - 3
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA5
+      freq: default
+      parslice:
+        - 5
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA8
+      freq: default
+      parslice:
+        - 8
+    - inditype: MA
+      infoslice:
+        - Close
+      name: MA10
+      freq: default
+      parslice:
+        - 10
+    - inditype: Var
+      infoslice:
+        - Close
+      name: Var10
+      freq: default
+      parslice:
+        - 10

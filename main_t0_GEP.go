@@ -185,7 +185,7 @@ func main() {
 	// create a manager instance:
 	m := NewManagerfromConfig("default", "default", *configdirPtr)
 	// manager prepares the market data
-	m.BT.PrepareData("VDS")
+	m.BT.PrepareData("VDS2")
 	if debug {
 		log.Info().Msg("Data Prepared!")
 	}

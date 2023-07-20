@@ -114,8 +114,10 @@ func TestRegisterandRemoveSTG(t *testing.T) {
 func TestGetTargetsData(t *testing.T) {
 	// ip
 	ip := "123.138.216.197"
+	ip = "10.1.90.91"
 	// port
 	port := 9004
+	port = 9904
 	// channel
 	ch := make(chan bool)
 	// new a data tunnel

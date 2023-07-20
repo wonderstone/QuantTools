@@ -329,6 +329,8 @@ func (dt *DataTunnel) TimeTrigger(iet InfoET, rl string) bool {
 		fmt.Println("Daily")
 	case "Min":
 		fmt.Println("Min")
+	default:
+		panic("wrong frequency type")
 	}
 
 	return true

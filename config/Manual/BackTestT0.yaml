@@ -14,10 +14,10 @@ default:
     # SIndiNames:  ["open","high","low","close","vol","ma5","ma10"]
     # SCsvDatafields:  ["open","high","low","close","vol","amount","ma5","ma10"]
     # 此处为样例标的信息、参与GEP指标信息、全部数据信息
-    sinstrnames:  ["sh510050"]
+    sinstrnames:  ["510050.SH"]
     sindinames:  ["Open","High","Low","Close","Vol","Amount","MA3","MA5","Var10" ]
     scsvdatafields:  ["Open","Close","High","Low","Volume","Amount"]
-    sadfields:  ["MA3"]
+    sadfields:  ["MA3","MA5","Var10"]
     # 期货为空
     finstrnames:  []
     findinames:  [] 
