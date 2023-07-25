@@ -129,6 +129,10 @@ func (t0 *ST0Strategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct 
 		for k := range t0.ifReCoverMap {
 			t0.ifReCoverMap[k] = false
 		}
+		// counter 重置
+		for k := range t0.tCounter {
+			t0.tCounter[k] = 0
+		}
 	}
 
 	// 2. 获取当前时间并判定是否介于StartTime与StopTime，是则进行常规操作
@@ -178,7 +182,7 @@ func (t0 *ST0Strategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct 
 						// ~ 建立tmpOrderSlice
 						tmpOrderSlice := make([]order.StockOrder, 0)
 						// ~ 策略买入逻辑
-						if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] < t0.Tlimit*2 {
 							// 买入TradeN
 							new_order := order.NewStockOrder(instID, false, false, datetime, val, float64(TradeN), "Buy", &tmpSCP)
 							if t0.CheckEligible(&new_order, &vAcct.SAcct) {
@@ -190,7 +194,7 @@ func (t0 *ST0Strategy) ActOnData(datetime string, bc *dataprocessor.BarC, vAcct 
 							}
 						}
 						// ~ 策略卖出逻辑
-						if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] < t0.Tlimit*2 {
 							// 卖出TradeN
 							new_order := order.NewStockOrder(instID, false, false, datetime, val, float64(TradeN), "Sell", &tmpSCP)
 							if t0.CheckEligible(&new_order, &vAcct.SAcct) {
@@ -246,6 +250,10 @@ func (t0 *ST0Strategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAc
 		for k := range t0.ifReCoverMap {
 			t0.ifReCoverMap[k] = false
 		}
+		// counter 重置
+		for k := range t0.tCounter {
+			t0.tCounter[k] = 0
+		}
 	}
 	// 2. 获取当前时间并判定是否介于StartTime与StopTime，是则进行常规操作
 	// 否 且大于StopTime,则查看恢复操作状态并进行恢复持仓操作。
@@ -283,7 +291,7 @@ func (t0 *ST0Strategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAc
 						// ~ 建立tmpOrderSlice
 						tmpOrderSlice := make([]order.StockOrder, 0)
 						// ~ 策略买入逻辑
-						if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						if buyval > 0 && lstbv < 0 && t0.tState[instID] <= 0 && t0.tCounter[instID] < t0.Tlimit*2 {
 							// 买入TradeN
 							new_order := order.NewStockOrder(instID, false, false, datetime, val, float64(TradeN), "Buy", &tmpSCP)
 							if t0.CheckEligible(&new_order, &vAcct.SAcct) {
@@ -295,7 +303,7 @@ func (t0 *ST0Strategy) ActOnDataMAN(datetime string, bc *dataprocessor.BarC, vAc
 							}
 						}
 						// ~ 策略卖出逻辑
-						if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] <= t0.Tlimit*2 {
+						if sellval > 0 && lstsv < 0 && t0.tState[instID] >= 0 && t0.tCounter[instID] < t0.Tlimit*2 {
 							// 卖出TradeN
 							new_order := order.NewStockOrder(instID, false, false, datetime, val, float64(TradeN), "Sell", &tmpSCP)
 							if t0.CheckEligible(&new_order, &vAcct.SAcct) {
